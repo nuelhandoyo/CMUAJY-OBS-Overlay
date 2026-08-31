@@ -25,26 +25,47 @@ import {
   Image as ImageIcon,
   RotateCcw,
   Clock,
+  HelpCircle,
+  Info,
+  Tv,
+  Laptop,
+  Globe,
+  Share2,
+  X,
 } from 'lucide-react';
 
 interface AdminPanelProps {
   config: OverlayConfig;
   onChangeConfig: (newConfig: OverlayConfig) => void;
   onOpenAudienceWindow: () => void;
+  onSwitchToAudienceView?: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   config,
   onChangeConfig,
   onOpenAudienceWindow,
+  onSwitchToAudienceView,
 }) => {
   const [activeTab, setActiveTab] = useState<'layout' | 'speaker' | 'waiting_screen' | 'camera' | 'slides' | 'branding'>('layout');
-  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedType, setCopiedType] = useState<'audience' | 'operator' | null>(null);
+  const [showObsGuideModal, setShowObsGuideModal] = useState(false);
   const [newSlideUrl, setNewSlideUrl] = useState('');
   const [newSlideTitle, setNewSlideTitle] = useState('');
 
+  // URLs for Audience and Operator
+  const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
+  const audienceUrl = `${baseUrl}?view=audience`;
+  const operatorUrl = `${baseUrl}?view=operator`;
+
   const updateConfig = (fields: Partial<OverlayConfig>) => {
     onChangeConfig({ ...config, ...fields });
+  };
+
+  const copyToClipboard = (url: string, type: 'audience' | 'operator') => {
+    navigator.clipboard.writeText(url);
+    setCopiedType(type);
+    setTimeout(() => setCopiedType(null), 2500);
   };
 
   const handleLogoUpload = (
@@ -98,10 +119,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const copyAudienceUrl = () => {
-    const url = `${window.location.origin}${window.location.pathname}?view=audience`;
-    navigator.clipboard.writeText(url);
-    setCopiedUrl(true);
-    setTimeout(() => setCopiedUrl(false), 2000);
+    copyToClipboard(audienceUrl, 'audience');
   };
 
   const handleNextSlide = () => {
@@ -192,22 +210,57 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
 
         {/* Header Action Buttons */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={copyAudienceUrl}
-            className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-xs"
-            title="Salin Link OBS Browser Source"
+            onClick={() => setShowObsGuideModal(true)}
+            className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-2xs"
+            title="Buka Petunjuk Pengaturan OBS Studio"
           >
-            {copiedUrl ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-amber-600" />}
-            <span>{copiedUrl ? 'Tersalin!' : 'Salin URL OBS'}</span>
+            <HelpCircle className="w-4 h-4 text-amber-600" />
+            <span>Panduan OBS</span>
+          </button>
+
+          <button
+            onClick={() => copyToClipboard(audienceUrl, 'audience')}
+            className={`flex items-center gap-1.5 border text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
+              copiedType === 'audience'
+                ? 'bg-emerald-600 text-white border-emerald-700'
+                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+            }`}
+            title="Salin URL OBS (?view=audience)"
+          >
+            {copiedType === 'audience' ? (
+              <Check className="w-4 h-4 text-white" />
+            ) : (
+              <Copy className="w-4 h-4 text-amber-500" />
+            )}
+            <span>{copiedType === 'audience' ? 'URL OBS Tersalin!' : 'Salin URL OBS (Audience)'}</span>
+          </button>
+
+          <button
+            onClick={() => copyToClipboard(operatorUrl, 'operator')}
+            className={`flex items-center gap-1.5 border text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
+              copiedType === 'operator'
+                ? 'bg-emerald-600 text-white border-emerald-700'
+                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+            }`}
+            title="Salin URL Operator (?view=operator)"
+          >
+            {copiedType === 'operator' ? (
+              <Check className="w-4 h-4 text-white" />
+            ) : (
+              <Copy className="w-4 h-4 text-blue-600" />
+            )}
+            <span>{copiedType === 'operator' ? 'URL Operator Tersalin!' : 'Salin URL Operator'}</span>
           </button>
 
           <button
             onClick={onOpenAudienceWindow}
-            className="flex items-center gap-2 bg-[#093A6E] hover:bg-blue-900 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-blue-900"
+            className="flex items-center gap-1.5 bg-[#093A6E] hover:bg-blue-900 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-md transition-all cursor-pointer border border-blue-900"
+            title="Buka Overlay Audience di Tab Baru"
           >
             <ExternalLink className="w-4 h-4 text-amber-400" />
-            <span>Tampilan Audience / Standalone OBS</span>
+            <span>Buka Layar Audience</span>
           </button>
         </div>
       </header>
@@ -492,6 +545,115 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* DEDICATED URL OBS & OPERATOR INTEGRATION CARD */}
+            <div className="mt-2 pt-3 border-t border-slate-200 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-xs font-extrabold text-[#093A6E] uppercase tracking-wider">
+                <span className="flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-amber-500" />
+                  URL OBS & Operator Multi-Device
+                </span>
+                <button
+                  onClick={() => setShowObsGuideModal(true)}
+                  className="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                  <span>Panduan OBS</span>
+                </button>
+              </div>
+
+              {/* 1. Audience URL (OBS Browser Source) */}
+              <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/90 flex flex-col gap-2 shadow-2xs">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Tv className="w-3.5 h-3.5 text-amber-700" />
+                    <span className="text-[11px] font-black text-amber-950 uppercase tracking-wide">
+                      1. URL Audience (OBS Studio)
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold bg-amber-200/90 text-amber-900 px-1.5 py-0.5 rounded">
+                    ?view=audience
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    readOnly
+                    value={audienceUrl}
+                    className="flex-1 bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all truncate shadow-inner"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(audienceUrl, 'audience')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                      copiedType === 'audience'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-[#093A6E] hover:bg-blue-900 text-white'
+                    }`}
+                    title="Salin URL Audience untuk OBS"
+                  >
+                    {copiedType === 'audience' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedType === 'audience' ? 'Tersalin' : 'Salin'}</span>
+                  </button>
+                  <button
+                    onClick={onOpenAudienceWindow}
+                    className="p-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg transition-all cursor-pointer shrink-0"
+                    title="Buka Audience di Tab Baru"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <p className="text-[10px] text-amber-900/80 leading-tight">
+                  Tempel URL ini ke <strong>OBS &gt; Browser Source</strong> (Width: 1920 / 3840, Height: 1080 / 2160, FPS: 60).
+                </p>
+              </div>
+
+              {/* 2. Operator URL (Admin Control Panel) */}
+              <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/90 flex flex-col gap-2 shadow-2xs">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Laptop className="w-3.5 h-3.5 text-[#093A6E]" />
+                    <span className="text-[11px] font-black text-blue-950 uppercase tracking-wide">
+                      2. URL Operator (Panel Kontrol)
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold bg-blue-200/90 text-blue-900 px-1.5 py-0.5 rounded">
+                    ?view=operator
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    readOnly
+                    value={operatorUrl}
+                    className="flex-1 bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all truncate shadow-inner"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(operatorUrl, 'operator')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                      copiedType === 'operator'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
+                    title="Salin URL Operator Panel"
+                  >
+                    {copiedType === 'operator' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedType === 'operator' ? 'Tersalin' : 'Salin'}</span>
+                  </button>
+                  <a
+                    href={operatorUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 bg-white hover:bg-blue-100 text-blue-900 border border-blue-300 rounded-lg transition-all cursor-pointer shrink-0 flex items-center justify-center"
+                    title="Buka Operator di Tab Baru / Device Lain"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+                <p className="text-[10px] text-blue-900/80 leading-tight">
+                  Buka di laptop operator kedua, iPad/tablet, atau HP untuk mengontrol siaran secara mobile.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -2060,6 +2222,227 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* OBS STUDIO SETUP & URL INTEGRATION MODAL */}
+      {showObsGuideModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-[#093A6E] to-blue-900 text-white rounded-t-3xl flex items-center justify-between sticky top-0 z-10 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/10 rounded-2xl backdrop-blur-xs border border-white/20">
+                  <Tv className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black tracking-tight flex items-center gap-2">
+                    PANDUAN KONEKSI OBS STUDIO & OPERATOR
+                  </h3>
+                  <p className="text-xs text-blue-100 font-medium">
+                    Cara membedakan & menghubungkan URL Siaran OBS dengan Panel Kontrol Admin
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowObsGuideModal(false)}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all cursor-pointer border border-white/20"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 flex flex-col gap-6 text-slate-800 text-xs leading-relaxed">
+              {/* Section 1: Comparison of 2 URLs */}
+              <div className="flex flex-col gap-3">
+                <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-amber-500" />
+                  1. Dua Jenis URL yang Berbeda
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Audience Card */}
+                  <div className="p-4 bg-amber-50/80 border-2 border-amber-300 rounded-2xl flex flex-col gap-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-[#093A6E] text-xs uppercase flex items-center gap-1.5">
+                        <Tv className="w-4 h-4 text-amber-600" />
+                        URL Audience (OBS Browser)
+                      </span>
+                      <span className="text-[10px] font-mono font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
+                        ?view=audience
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-[11px]">
+                      Halaman overlay murni tanpa menu admin, dirancang khusus untuk dimasukkan ke OBS Studio.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <input
+                        type="text"
+                        readOnly
+                        value={audienceUrl}
+                        className="flex-1 bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all"
+                      />
+                      <button
+                        onClick={() => copyToClipboard(audienceUrl, 'audience')}
+                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer shrink-0 ${
+                          copiedType === 'audience'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-[#093A6E] hover:bg-blue-900 text-white'
+                        }`}
+                      >
+                        {copiedType === 'audience' ? 'Tersalin!' : 'Salin'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Operator Card */}
+                  <div className="p-4 bg-blue-50/80 border-2 border-blue-300 rounded-2xl flex flex-col gap-2.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-[#093A6E] text-xs uppercase flex items-center gap-1.5">
+                        <Laptop className="w-4 h-4 text-blue-600" />
+                        URL Operator (Panel Admin)
+                      </span>
+                      <span className="text-[10px] font-mono font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded-full">
+                        ?view=operator
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-[11px]">
+                      Halaman kendali untuk kru/operator untuk ganti slide, name tag, tata letak kamera, dan running text.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <input
+                        type="text"
+                        readOnly
+                        value={operatorUrl}
+                        className="flex-1 bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all"
+                      />
+                      <button
+                        onClick={() => copyToClipboard(operatorUrl, 'operator')}
+                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer shrink-0 ${
+                          copiedType === 'operator'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        {copiedType === 'operator' ? 'Tersalin!' : 'Salin'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Step-by-Step OBS Setup */}
+              <div className="flex flex-col gap-3">
+                <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
+                  <Info className="w-4 h-4 text-cyan-600" />
+                  2. Langkah-Langkah Memasang di OBS Studio
+                </h4>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#093A6E] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      1
+                    </span>
+                    <div>
+                      <strong className="text-slate-900">Tambahkan Browser Source:</strong>
+                      <p className="text-slate-600 text-[11px]">
+                        Di OBS Studio, pada panel <strong>Sources</strong>, klik tanda plus (<strong>+</strong>) &gt; pilih <strong>Browser</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#093A6E] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      2
+                    </span>
+                    <div>
+                      <strong className="text-slate-900">Tempel URL Audience:</strong>
+                      <p className="text-slate-600 text-[11px]">
+                        Pada kolom <strong>URL</strong>, tempel link Audience: <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">{audienceUrl}</code>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#093A6E] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      3
+                    </span>
+                    <div>
+                      <strong className="text-slate-900">Atur Resolusi & FPS:</strong>
+                      <div className="grid grid-cols-3 gap-2 mt-1.5">
+                        <div className="bg-white p-2 rounded-lg border border-slate-200 text-center">
+                          <span className="text-[10px] text-slate-500 block">Width (Lebar)</span>
+                          <span className="font-mono font-bold text-slate-800 text-xs">1920 (atau 3840)</span>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200 text-center">
+                          <span className="text-[10px] text-slate-500 block">Height (Tinggi)</span>
+                          <span className="font-mono font-bold text-slate-800 text-xs">1080 (atau 2160)</span>
+                        </div>
+                        <div className="bg-white p-2 rounded-lg border border-slate-200 text-center">
+                          <span className="text-[10px] text-slate-500 block">FPS</span>
+                          <span className="font-mono font-bold text-slate-800 text-xs">60</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#093A6E] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      4
+                    </span>
+                    <div>
+                      <strong className="text-slate-900">Centang Opsi Hemat & Performa:</strong>
+                      <ul className="list-disc list-inside text-[11px] text-slate-600 mt-1 space-y-0.5">
+                        <li>Centang <strong>"Shutdown source when not visible"</strong></li>
+                        <li>Centang <strong>"Refresh browser when scene becomes active"</strong></li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      ✓
+                    </span>
+                    <div>
+                      <strong className="text-emerald-900">Selesai! Real-Time Synchronization Siap:</strong>
+                      <p className="text-slate-600 text-[11px]">
+                        Buka panel operator di laptop/HP Anda. Setiap tombol yang Anda klik akan langsung mengupdate tampilan di OBS secara instan tanpa perlu refresh!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between rounded-b-3xl">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => copyToClipboard(audienceUrl, 'audience')}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs shadow-xs"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Salin URL OBS</span>
+                </button>
+                <button
+                  onClick={onOpenAudienceWindow}
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs shadow-xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Buka Layar Audience</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowObsGuideModal(false)}
+                className="px-5 py-2 bg-[#093A6E] hover:bg-blue-900 text-white font-black rounded-xl transition-all cursor-pointer text-xs shadow-sm"
+              >
+                Tutup Panduan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

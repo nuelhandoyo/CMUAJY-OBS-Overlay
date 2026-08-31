@@ -32,6 +32,9 @@ import {
   Globe,
   Share2,
   X,
+  Key,
+  RefreshCw,
+  Sliders,
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -39,6 +42,14 @@ interface AdminPanelProps {
   onChangeConfig: (newConfig: OverlayConfig) => void;
   onOpenAudienceWindow: () => void;
   onSwitchToAudienceView?: () => void;
+  roomCode?: string;
+  onChangeRoomCode?: (newCode: string) => void;
+  syncStatus?: {
+    status: 'connected' | 'syncing' | 'offline';
+    code: string;
+    subscribers: number;
+    lastSyncTime: number;
+  };
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -46,17 +57,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onChangeConfig,
   onOpenAudienceWindow,
   onSwitchToAudienceView,
+  roomCode = 'UAJY-MISA',
+  onChangeRoomCode,
+  syncStatus,
 }) => {
   const [activeTab, setActiveTab] = useState<'layout' | 'speaker' | 'waiting_screen' | 'camera' | 'slides' | 'branding'>('layout');
-  const [copiedType, setCopiedType] = useState<'audience' | 'operator' | null>(null);
+  const [copiedType, setCopiedType] = useState<'audience' | 'operator' | 'room_code' | null>(null);
   const [showObsGuideModal, setShowObsGuideModal] = useState(false);
   const [newSlideUrl, setNewSlideUrl] = useState('');
   const [newSlideTitle, setNewSlideTitle] = useState('');
+  
+  // Custom room code editing state
+  const [inputCode, setInputCode] = useState(roomCode);
+  const [isEditingCode, setIsEditingCode] = useState(false);
 
-  // URLs for Audience and Operator
+  // URLs for Audience and Operator with room/session code
   const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
-  const audienceUrl = `${baseUrl}?view=audience`;
-  const operatorUrl = `${baseUrl}?view=operator`;
+  const audienceUrl = `${baseUrl}?view=audience&code=${encodeURIComponent(roomCode)}`;
+  const operatorUrl = `${baseUrl}?view=operator&code=${encodeURIComponent(roomCode)}`;
+
+  const handleApplyNewCode = () => {
+    if (onChangeRoomCode && inputCode.trim()) {
+      onChangeRoomCode(inputCode.trim());
+      setIsEditingCode(false);
+    }
+  };
+
+  const handleGenerateRandomCode = () => {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newGenCode = `UAJY-${randomSuffix}`;
+    setInputCode(newGenCode);
+    if (onChangeRoomCode) {
+      onChangeRoomCode(newGenCode);
+      setIsEditingCode(false);
+    }
+  };
 
   const updateConfig = (fields: Partial<OverlayConfig>) => {
     onChangeConfig({ ...config, ...fields });
@@ -547,20 +582,86 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               )}
             </div>
 
-            {/* DEDICATED URL OBS & OPERATOR INTEGRATION CARD */}
-            <div className="mt-2 pt-3 border-t border-slate-200 flex flex-col gap-2.5">
+            {/* DEDICATED SESSION KEY & OBS URL INTEGRATION CARD */}
+            <div className="mt-2 pt-3 border-t border-slate-200 flex flex-col gap-3">
+              {/* Header with Title & Panduan OBS Button */}
               <div className="flex items-center justify-between text-xs font-extrabold text-[#093A6E] uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
-                  <Globe className="w-4 h-4 text-amber-500" />
-                  URL OBS & Operator Multi-Device
+                  <Key className="w-4 h-4 text-amber-500" />
+                  Kunci Sesi & URL Multi-Browser
                 </span>
                 <button
                   onClick={() => setShowObsGuideModal(true)}
-                  className="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1"
+                  className="text-[10px] bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                 >
-                  <HelpCircle className="w-3 h-3" />
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
                   <span>Panduan OBS</span>
                 </button>
+              </div>
+
+              {/* ACTIVE SESSION ROOM CODE CONTROLLER */}
+              <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50/60 rounded-xl border border-amber-300/90 flex flex-col gap-2.5 shadow-2xs">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-black text-amber-950 uppercase tracking-wide">
+                      🔑 Kunci Sesi Bersama:
+                    </span>
+                    <span className="text-xs font-mono font-black bg-amber-200/90 text-amber-900 px-2 py-0.5 rounded-md border border-amber-300">
+                      {roomCode}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      <span>{syncStatus?.subscribers ? `${syncStatus.subscribers} Perangkat` : 'Terkoneksi'}</span>
+                    </span>
+
+                    <button
+                      onClick={() => setIsEditingCode(!isEditingCode)}
+                      className="text-[10px] font-bold bg-white hover:bg-amber-100 text-slate-700 border border-amber-300 px-2 py-0.5 rounded-md transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <Sliders className="w-3 h-3 text-amber-600" />
+                      <span>{isEditingCode ? 'Batal' : 'Ganti Kode'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Edit Room Code Form (When Toggled) */}
+                {isEditingCode && (
+                  <div className="bg-white p-2.5 rounded-lg border border-amber-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-fade-in shadow-inner">
+                    <div className="flex-1 flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-500 font-mono">CODE:</span>
+                      <input
+                        type="text"
+                        value={inputCode}
+                        onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                        placeholder="Contoh: MISA-UAJY"
+                        className="flex-1 bg-amber-50/50 border border-amber-300 rounded px-2 py-1 text-xs font-mono font-bold text-slate-900 outline-none uppercase"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={handleApplyNewCode}
+                        className="px-3 py-1 bg-[#093A6E] hover:bg-blue-900 text-white font-black text-xs rounded transition-all cursor-pointer shadow-xs"
+                      >
+                        Terapkan
+                      </button>
+                      <button
+                        onClick={handleGenerateRandomCode}
+                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded border border-slate-300 transition-all cursor-pointer flex items-center gap-1"
+                        title="Buat Kode Acak"
+                      >
+                        <RefreshCw className="w-3 h-3 text-slate-600" />
+                        <span>Acak</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-amber-900/90 leading-tight">
+                  Kode ini tertera di URL. Perangkat atau browser apa pun (OBS di PC lain, HP/tablet kru) yang menggunakan kode yang sama akan <strong>tersinkronisasi secara instan & real-time</strong>.
+                </p>
               </div>
 
               {/* 1. Audience URL (OBS Browser Source) */}
@@ -573,7 +674,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
                   <span className="text-[9px] font-mono font-bold bg-amber-200/90 text-amber-900 px-1.5 py-0.5 rounded">
-                    ?view=audience
+                    ?view=audience&code={roomCode}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -604,7 +705,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </button>
                 </div>
                 <p className="text-[10px] text-amber-900/80 leading-tight">
-                  Tempel URL ini ke <strong>OBS &gt; Browser Source</strong> (Width: 1920 / 3840, Height: 1080 / 2160, FPS: 60).
+                  Tempel ke <strong>OBS Studio &gt; Browser Source</strong> (Lebar: 1920 / 3840, Tinggi: 1080 / 2160, FPS: 60). Layout otomatis menyesuaikan resolusi tanpa terpotong.
                 </p>
               </div>
 
@@ -618,7 +719,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
                   <span className="text-[9px] font-mono font-bold bg-blue-200/90 text-blue-900 px-1.5 py-0.5 rounded">
-                    ?view=operator
+                    ?view=operator&code={roomCode}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -651,7 +752,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </a>
                 </div>
                 <p className="text-[10px] text-blue-900/80 leading-tight">
-                  Buka di laptop operator kedua, iPad/tablet, atau HP untuk mengontrol siaran secara mobile.
+                  Buka di laptop operator kedua, iPad/tablet, atau HP untuk mengontrol siaran secara mobile dari mana saja.
                 </p>
               </div>
             </div>
@@ -2253,12 +2354,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
             {/* Modal Body */}
             <div className="p-6 flex flex-col gap-6 text-slate-800 text-xs leading-relaxed">
-              {/* Section 1: Comparison of 2 URLs */}
+              {/* Section 1: Comparison of 2 URLs with Session Key */}
               <div className="flex flex-col gap-3">
-                <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-amber-500" />
-                  1. Dua Jenis URL yang Berbeda
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-amber-500" />
+                    1. Dua Jenis URL dengan Kunci Sesi ({roomCode})
+                  </h4>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <Key className="w-3 h-3" />
+                    <span>KUNCI: {roomCode}</span>
+                  </span>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Audience Card */}
@@ -2269,11 +2376,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         URL Audience (OBS Browser)
                       </span>
                       <span className="text-[10px] font-mono font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                        ?view=audience
+                        ?view=audience&code={roomCode}
                       </span>
                     </div>
                     <p className="text-slate-600 text-[11px]">
-                      Halaman overlay murni tanpa menu admin, dirancang khusus untuk dimasukkan ke OBS Studio.
+                      Halaman overlay murni tanpa menu admin. Otomatis menyesuaikan resolusi 1080p / 4K tanpa terpotong.
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       <input
@@ -2303,11 +2410,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         URL Operator (Panel Admin)
                       </span>
                       <span className="text-[10px] font-mono font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded-full">
-                        ?view=operator
+                        ?view=operator&code={roomCode}
                       </span>
                     </div>
                     <p className="text-slate-600 text-[11px]">
-                      Halaman kendali untuk kru/operator untuk ganti slide, name tag, tata letak kamera, dan running text.
+                      Halaman kontrol kru di laptop/HP kedua untuk ganti nama, tata letak kamera, slide, dan running text.
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       <input

@@ -1,9 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { OverlayConfig } from './types';
-import { loadOverlayConfig, saveOverlayConfig, subscribeOverlayConfig } from './utils/storageSync';
+import {
+  loadOverlayConfig,
+  saveOverlayConfig,
+  subscribeOverlayConfig,
+  getSessionCodeFromUrl,
+  setSessionCodeInUrl,
+  sanitizeRoomCode,
+  SyncStatus,
+} from './utils/storageSync';
 import { AdminPanel } from './components/AdminPanel';
 import { AudienceOverlay } from './components/AudienceOverlay';
-import { Monitor, Shield, Radio, Copy, Check, ExternalLink } from 'lucide-react';
+import { Monitor, Shield, Radio, Copy, Check, ExternalLink, Wifi, Key } from 'lucide-react';
 
 // Helper to determine viewMode from search params, hash, or pathname
 function detectViewMode(): 'admin' | 'audience' {
@@ -29,67 +37,75 @@ function detectViewMode(): 'admin' | 'audience' {
 }
 
 export default function App() {
-  const [config, setConfig] = useState<OverlayConfig>(loadOverlayConfig());
+  const [roomCode, setRoomCode] = useState<string>(getSessionCodeFromUrl);
+  const [config, setConfig] = useState<OverlayConfig>(() => loadOverlayConfig(getSessionCodeFromUrl()));
   const [viewMode, setViewMode] = useState<'admin' | 'audience'>(detectViewMode);
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    status: 'syncing',
+    code: getSessionCodeFromUrl(),
+    subscribers: 1,
+    lastSyncTime: Date.now(),
+  });
 
-  // Sync viewMode with browser history (popstate / hashchange)
+  // Sync viewMode and roomCode with browser history / URL changes
   useEffect(() => {
     const handleUrlChange = () => {
       setViewMode(detectViewMode());
+      const newCode = getSessionCodeFromUrl();
+      if (newCode !== roomCode) {
+        setRoomCode(newCode);
+        setConfig(loadOverlayConfig(newCode));
+      }
     };
 
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('hashchange', handleUrlChange);
 
-    // Subscribe to cross-tab / cross-window real-time config updates
-    const unsubscribe = subscribeOverlayConfig((newConfig) => {
-      setConfig(newConfig);
-    });
-
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, [roomCode]);
+
+  // Subscribe to real-time updates for the current roomCode (across tabs, browsers, and OBS)
+  useEffect(() => {
+    // Ensure URL has current roomCode
+    setSessionCodeInUrl(roomCode, viewMode);
+
+    const unsubscribe = subscribeOverlayConfig(
+      roomCode,
+      (newConfig) => {
+        setConfig(newConfig);
+      },
+      (status) => {
+        setSyncStatus(status);
+      }
+    );
+
+    return () => {
       unsubscribe();
     };
-  }, []);
+  }, [roomCode, viewMode]);
 
   const handleSwitchView = useCallback((newMode: 'admin' | 'audience') => {
     setViewMode(newMode);
-    try {
-      const url = new URL(window.location.href);
-      if (newMode === 'audience') {
-        url.searchParams.set('view', 'audience');
-      } else {
-        url.searchParams.set('view', 'operator');
-      }
-      window.history.pushState({ view: newMode }, '', url.toString());
-    } catch (e) {
-      console.warn('Unable to pushState:', e);
-    }
-  }, []);
+    setSessionCodeInUrl(roomCode, newMode);
+  }, [roomCode]);
+
+  const handleRoomCodeChange = useCallback((newCodeRaw: string) => {
+    const newCode = sanitizeRoomCode(newCodeRaw);
+    if (!newCode || newCode === roomCode) return;
+    setRoomCode(newCode);
+    setSessionCodeInUrl(newCode, viewMode);
+    const initialForRoom = loadOverlayConfig(newCode);
+    setConfig(initialForRoom);
+  }, [roomCode, viewMode]);
 
   const handleConfigChange = (newConfig: OverlayConfig) => {
     setConfig(newConfig);
-    saveOverlayConfig(newConfig);
+    saveOverlayConfig(newConfig, roomCode);
   };
-
-  // Admin Heartbeat for Leader Election (prevents multi-tab race conditions)
-  useEffect(() => {
-    if (viewMode === 'admin') {
-      const heartbeat = setInterval(() => {
-        try {
-          localStorage.setItem('admin_last_active', Date.now().toString());
-        } catch (e) {
-          // ignore
-        }
-      }, 2000);
-      try {
-        localStorage.setItem('admin_last_active', Date.now().toString());
-      } catch (e) {}
-      return () => clearInterval(heartbeat);
-    }
-  }, [viewMode]);
 
   // Automatic Slide Rotation Effect when autoAdvanceSlides is enabled
   useEffect(() => {
@@ -108,29 +124,23 @@ export default function App() {
         : 10;
 
     const timer = setInterval(() => {
-      // Check if this window should advance (Admin window or standalone Audience window)
-      if (viewMode === 'audience') {
-        const lastActive = Number(localStorage.getItem('admin_last_active') || '0');
-        if (Date.now() - lastActive <= 5000) {
-          // Admin panel is currently active in another window, let Admin handle advancing
-          return;
-        }
+      // Only advance automatically on admin window to avoid multiple callers
+      if (viewMode === 'admin') {
+        setConfig((prevConfig) => {
+          if (
+            !prevConfig.autoAdvanceSlides ||
+            prevConfig.slideSourceType !== 'image_deck' ||
+            !prevConfig.slides ||
+            prevConfig.slides.length <= 1
+          ) {
+            return prevConfig;
+          }
+          const nextIdx = (prevConfig.activeSlideIndex + 1) % prevConfig.slides.length;
+          const updated = { ...prevConfig, activeSlideIndex: nextIdx };
+          saveOverlayConfig(updated, roomCode);
+          return updated;
+        });
       }
-
-      setConfig((prevConfig) => {
-        if (
-          !prevConfig.autoAdvanceSlides ||
-          prevConfig.slideSourceType !== 'image_deck' ||
-          !prevConfig.slides ||
-          prevConfig.slides.length <= 1
-        ) {
-          return prevConfig;
-        }
-        const nextIdx = (prevConfig.activeSlideIndex + 1) % prevConfig.slides.length;
-        const updated = { ...prevConfig, activeSlideIndex: nextIdx };
-        saveOverlayConfig(updated);
-        return updated;
-      });
     }, intervalSec * 1000);
 
     return () => clearInterval(timer);
@@ -140,18 +150,19 @@ export default function App() {
     config.slideSourceType,
     config.slides?.length,
     viewMode,
+    roomCode,
   ]);
 
   const handleOpenAudienceWindow = () => {
-    const audienceUrl = `${window.location.origin}${window.location.pathname}?view=audience`;
+    const audienceUrl = `${window.location.origin}${window.location.pathname}?view=audience&code=${encodeURIComponent(roomCode)}`;
     window.open(audienceUrl, 'OBS_Audience_Overlay_Window', 'width=1920,height=1080');
   };
 
   const copyUrl = (type: 'audience' | 'operator') => {
-    const param = type === 'audience' ? '?view=audience' : '?view=operator';
-    const targetUrl = `${window.location.origin}${window.location.pathname}${param}`;
+    const viewParam = type === 'audience' ? 'audience' : 'operator';
+    const targetUrl = `${window.location.origin}${window.location.pathname}?view=${viewParam}&code=${encodeURIComponent(roomCode)}`;
     navigator.clipboard.writeText(targetUrl);
-    setCopiedNotification(type === 'audience' ? 'URL OBS (Audience) Tersalin!' : 'URL Operator Tersalin!');
+    setCopiedNotification(type === 'audience' ? `URL OBS [${roomCode}] Tersalin!` : `URL Operator [${roomCode}] Tersalin!`);
     setTimeout(() => setCopiedNotification(null), 2500);
   };
 
@@ -168,13 +179,16 @@ export default function App() {
   };
 
   // 1. STANDALONE AUDIENCE / OBS BROWSER SOURCE VIEW
-  // Clean 100% full-screen output for OBS Studio
+  // Clean 100% full-screen output for OBS Studio (Fits any resolution, never cropped)
   if (viewMode === 'audience') {
     return (
       <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative select-none">
         {/* Discreet hover utility for testing inside standard browsers (invisible on stream) */}
         <div className="fixed top-2 right-2 z-50 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-slate-900/90 border border-slate-700 p-1.5 rounded-xl text-xs flex items-center gap-2 text-white backdrop-blur-md shadow-2xl">
-          <span className="text-[11px] text-amber-400 font-bold px-1.5">OBS Mode (?view=audience)</span>
+          <div className="flex items-center gap-1 text-[11px] text-amber-400 font-bold px-1.5">
+            <Key className="w-3 h-3 text-amber-400" />
+            <span>KODE: {roomCode}</span>
+          </div>
           <button
             onClick={() => handleSwitchView('admin')}
             className="px-3 py-1 bg-[#093A6E] text-white font-extrabold rounded-lg hover:bg-blue-800 cursor-pointer flex items-center gap-1.5 transition-all"
@@ -199,11 +213,22 @@ export default function App() {
     <div className="w-full min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
       {/* Top Header Bar with View Switcher & Direct OBS URL Tools */}
       <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 shadow-2xs">
-        <div className="flex items-center gap-2">
-          <Radio className="w-4 h-4 text-amber-500 animate-pulse" />
-          <span className="font-extrabold text-[#093A6E] text-sm">Campus Ministry UAJY</span>
-          <span className="text-slate-300 hidden sm:inline">•</span>
-          <span className="text-slate-500 font-medium hidden sm:inline">Stream Overlay System</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Radio className="w-4 h-4 text-amber-500 animate-pulse" />
+            <span className="font-extrabold text-[#093A6E] text-sm">Campus Ministry UAJY</span>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1.5 bg-amber-50 border border-amber-300/80 px-2.5 py-1 rounded-lg">
+            <Key className="w-3.5 h-3.5 text-amber-600" />
+            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wide">Kunci Sesi:</span>
+            <span className="font-mono font-black text-amber-950 text-xs">{roomCode}</span>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="font-bold">Real-Time Sync Aktif</span>
+          </div>
         </div>
 
         {/* Quick URL Copy & Mode Switcher */}
@@ -220,18 +245,18 @@ export default function App() {
             <button
               onClick={() => copyUrl('audience')}
               className="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg border border-slate-200 cursor-pointer flex items-center gap-1.5 transition-all shadow-2xs hover:text-[#093A6E]"
-              title="Salin URL OBS: .../?view=audience"
+              title={`Salin URL OBS: .../?view=audience&code=${roomCode}`}
             >
               <Copy className="w-3.5 h-3.5 text-amber-500" />
-              <span>Salin URL OBS (?view=audience)</span>
+              <span>Salin URL OBS</span>
             </button>
             <button
               onClick={() => copyUrl('operator')}
               className="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-lg border border-slate-200 cursor-pointer flex items-center gap-1.5 transition-all shadow-2xs hover:text-[#093A6E]"
-              title="Salin URL Operator: .../?view=operator"
+              title={`Salin URL Operator: .../?view=operator&code=${roomCode}`}
             >
               <Copy className="w-3.5 h-3.5 text-blue-600" />
-              <span>Salin URL Operator (?view=operator)</span>
+              <span>Salin URL Operator</span>
             </button>
           </div>
 
@@ -269,8 +294,10 @@ export default function App() {
         onChangeConfig={handleConfigChange}
         onOpenAudienceWindow={handleOpenAudienceWindow}
         onSwitchToAudienceView={() => handleSwitchView('audience')}
+        roomCode={roomCode}
+        onChangeRoomCode={handleRoomCodeChange}
+        syncStatus={syncStatus}
       />
     </div>
   );
 }
-

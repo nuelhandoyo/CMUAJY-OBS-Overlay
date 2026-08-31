@@ -176,14 +176,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-[#093A6E] tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-black text-[#093A6E] tracking-tight flex items-center gap-2 flex-wrap">
               OBS OVERLAY OPERATOR
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
                 LIGHT MODE • REAL-TIME SYNC
               </span>
+              <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-300">
+                ✨ 4K UHD • 2K • 1080p READY
+              </span>
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Panel Kontrol Admin Campus Ministry UAJY (Misa Katolik, Seminar & Workshop)
+              Panel Kontrol Admin Campus Ministry UAJY • Mendukung Layar 4K UHD (3840×2160) & 1080p
             </p>
           </div>
         </div>
@@ -403,10 +406,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               {(config.layoutMode === 'presenter_slide' ||
                 config.layoutMode === 'full_slide_pip' ||
                 config.layoutMode === 'full_slide_only') && (
-                <p className="text-[11px] text-amber-800 font-bold bg-amber-50/80 p-2 rounded-xl border border-amber-200/80">
+                <p className="text-[11px] text-amber-800 font-bold bg-amber-50/80 p-2 rounded-xl border border-amber-200/80 col-span-2">
                   ⚡ Note: Name Tag otomatis disembunyikan saat mode Slide aktif.
                 </p>
               )}
+
+              <div className="col-span-2 flex items-center justify-between text-[11px] text-slate-600 bg-slate-100/90 px-3 py-1.5 rounded-xl border border-slate-200">
+                <span className="font-bold text-[#093A6E]">📐 Resolusi OBS:</span>
+                <span className="font-mono text-slate-700">1920×1080 (FHD) / 3840×2160 (4K UHD)</span>
+                <span className="text-emerald-700 font-bold">✓ Skala Otomatis</span>
+              </div>
             </div>
 
             {/* OPERATOR SLIDE CONTROL CARD */}

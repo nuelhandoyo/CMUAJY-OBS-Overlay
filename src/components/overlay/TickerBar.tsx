@@ -15,10 +15,10 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
 
   const fontSizeClass =
     config.tickerFontSize === 'small'
-      ? 'text-xs md:text-sm'
+      ? 'text-sm'
       : config.tickerFontSize === 'large'
-      ? 'text-base md:text-lg font-bold'
-      : 'text-sm md:text-base font-semibold';
+      ? 'text-lg font-bold'
+      : 'text-base font-semibold';
 
   const bgColor = config.tickerBgColor || (config.themePreset === 'cream' ? '#FFF7E5' : '#093A6E');
   const textColor = config.tickerTextColor || (config.themePreset === 'cream' ? '#093A6E' : '#FFF7E5');
@@ -40,7 +40,7 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 30 }}
       transition={{ duration: 0.4 }}
-      className={`w-full shrink-0 z-40 border-t-4 shadow-2xl h-11 md:h-12 flex items-center overflow-hidden ${fontClass}`}
+      className={`w-full shrink-0 z-40 border-t-4 shadow-2xl h-14 flex items-center overflow-hidden ${fontClass}`}
       style={{
         backgroundColor: bgColor,
         color: textColor,
@@ -49,7 +49,7 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
     >
       {/* Ticker Title Badge */}
       <div
-        className="font-black px-4 h-full flex items-center gap-2 text-xs md:text-sm tracking-wider uppercase shrink-0 shadow-md z-10"
+        className="font-black px-6 h-full flex items-center gap-2.5 text-sm tracking-wider uppercase shrink-0 shadow-md z-10"
         style={{
           backgroundColor: badgeBgColor,
           color: badgeTextColor,

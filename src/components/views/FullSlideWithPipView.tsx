@@ -17,7 +17,7 @@ export const FullSlideWithPipView: React.FC<FullSlideWithPipViewProps> = ({
   const shapeClass = getLayoutShapeClass(config.layoutShape);
 
   return (
-    <div className="w-full h-full relative p-2 md:p-4 flex items-center justify-center bg-transparent font-sans overflow-hidden">
+    <div className="w-full h-full relative p-6 flex items-center justify-center bg-transparent font-sans overflow-hidden">
       {/* 16:9 Slide Canvas Container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
@@ -32,7 +32,7 @@ export const FullSlideWithPipView: React.FC<FullSlideWithPipViewProps> = ({
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
-          className={`absolute bottom-4 right-4 md:bottom-6 md:right-6 z-20 w-48 md:w-64 aspect-video ${shapeClass} overflow-hidden shadow-2xl border-2 border-amber-400/90 bg-slate-900 ring-4 ring-slate-950/40`}
+          className={`absolute bottom-6 right-6 z-20 w-80 aspect-video ${shapeClass} overflow-hidden shadow-2xl border-2 border-amber-400/90 bg-slate-900 ring-4 ring-slate-950/40`}
         >
           <CameraBox
             cameraMode={config.cameraMode}

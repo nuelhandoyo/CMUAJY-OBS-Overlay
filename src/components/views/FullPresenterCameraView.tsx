@@ -37,13 +37,13 @@ export const FullPresenterCameraView: React.FC<FullPresenterCameraViewProps> = (
   }
 
   return (
-    <div className="w-full h-full relative p-2 md:p-4 flex items-center justify-center bg-transparent font-sans overflow-hidden">
+    <div className="w-full h-full relative p-6 flex items-center justify-center bg-transparent font-sans overflow-hidden">
       {/* Full Presenter Camera Area with Frame */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className={`w-full h-full max-w-7xl relative overflow-hidden ${shapeClass} border-2 border-slate-700/80 shadow-2xl`}
+        className={`w-full h-full max-h-[940px] relative overflow-hidden ${shapeClass} border-2 border-slate-700/80 shadow-2xl`}
       >
         <CameraBox
           cameraMode={config.cameraMode}

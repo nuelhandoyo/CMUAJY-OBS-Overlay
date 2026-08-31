@@ -16,7 +16,7 @@ export const FullSlideOnlyView: React.FC<FullSlideOnlyViewProps> = ({
   const shapeClass = getLayoutShapeClass(config.layoutShape);
 
   return (
-    <div className="w-full h-full relative p-2 md:p-4 flex items-center justify-center bg-transparent font-sans overflow-hidden">
+    <div className="w-full h-full relative p-6 flex items-center justify-center bg-transparent font-sans overflow-hidden">
       {/* 16:9 Presentation Slide Canvas Box */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}

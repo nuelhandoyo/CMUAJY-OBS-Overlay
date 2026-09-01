@@ -12,15 +12,21 @@ interface LowerThirdProps {
 
 const getShapeClass = (shape?: string) => {
   switch (shape) {
-    case 'sharp':
-      return { container: 'rounded-[7px]', tag: 'rounded-[7px]' };
-    case 'pill':
-      return { container: 'rounded-full px-6 md:px-8', tag: 'rounded-full px-4' };
     case 'bevel':
-      return { container: 'rounded-tl-2xl rounded-br-2xl rounded-tr-none rounded-bl-none', tag: 'rounded-tl-xl rounded-br-xl rounded-tr-none rounded-bl-none' };
-    case 'rounded':
+      return {
+        container: 'rounded-tl-2xl rounded-br-2xl rounded-tr-[4px] rounded-bl-[4px]',
+        tag: 'rounded-tl-xl rounded-br-xl rounded-tr-[4px] rounded-bl-[4px]',
+        accentPill: 'rounded-[4px]',
+        card: 'rounded-tl-xl rounded-br-xl rounded-tr-[4px] rounded-bl-[4px]',
+      };
+    case 'sharp':
     default:
-      return { container: 'rounded-2xl', tag: 'rounded-t-lg' };
+      return {
+        container: 'rounded-[4px]',
+        tag: 'rounded-[4px]',
+        accentPill: 'rounded-[4px]',
+        card: 'rounded-[4px]',
+      };
   }
 };
 
@@ -28,7 +34,20 @@ const getFontClass = (font?: string) => {
   return getFontFamilyClass(font);
 };
 
-const getColorPalette = (color?: string, themePreset?: 'cream' | 'dark') => {
+const getColorPalette = (color?: string, themePreset?: 'cream' | 'dark' | 'frosted_light') => {
+  if (themePreset === 'frosted_light' || color === 'frosted_white') {
+    return {
+      bg: 'bg-white/85 text-slate-900 border-2 border-white shadow-[0_15px_40px_rgba(0,0,0,0.18)] backdrop-blur-2xl',
+      borderLeft: 'border-l-8 border-l-slate-900',
+      nameText: 'text-slate-950 font-black',
+      titleText: 'text-slate-700 font-semibold',
+      tagBg: 'bg-slate-900 text-white shadow-sm font-black',
+      dockedBg: 'bg-white/90 border-t-4 border-b-2 border-white text-slate-900 shadow-2xl backdrop-blur-2xl',
+      accent1: 'bg-slate-900',
+      accent2: 'bg-slate-600',
+    };
+  }
+
   if (themePreset === 'dark') {
     return {
       bg: 'bg-[#093A6E] text-[#FFF7E5] border-2 border-[#FFF7E5] shadow-2xl backdrop-blur-md',
@@ -56,6 +75,17 @@ const getColorPalette = (color?: string, themePreset?: 'cream' | 'dark') => {
   }
 
   switch (color) {
+    case 'frosted_white':
+      return {
+        bg: 'bg-white/85 text-slate-900 border-2 border-white shadow-[0_15px_40px_rgba(0,0,0,0.18)] backdrop-blur-2xl',
+        borderLeft: 'border-l-8 border-l-slate-900',
+        nameText: 'text-slate-950 font-black',
+        titleText: 'text-slate-700 font-semibold',
+        tagBg: 'bg-slate-900 text-white shadow-sm font-black',
+        dockedBg: 'bg-white/90 border-t-4 border-b-2 border-white text-slate-900 shadow-2xl backdrop-blur-2xl',
+        accent1: 'bg-slate-900',
+        accent2: 'bg-slate-600',
+      };
     case 'blue':
       return {
         bg: 'bg-gradient-to-r from-blue-950 via-blue-900 to-slate-950 text-white',
@@ -143,7 +173,8 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
   positionClass,
 }) => {
   const isWaitingLayout = config.layoutMode === 'waiting';
-  const isVisible = config.showLowerThird && !isWaitingLayout;
+  // Automatically deactivate Name Tag (Lower Third) when Liturgy Floating Rundown Tracker is active
+  const isVisible = config.showLowerThird && !isWaitingLayout && !config.showLiturgyTracker;
 
   const currentSpeaker = speakerOverride || config.speaker;
   const style = config.lowerThirdStyle;
@@ -170,14 +201,18 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
 
   const getDockedStyle = () => {
     if (config.lowerThirdColor && config.lowerThirdColor !== 'navy') {
+      const isLightPalette =
+        config.themePreset === 'frosted_light' ||
+        config.lowerThirdColor === 'frosted_white' ||
+        config.lowerThirdColor === 'custom';
       return {
         container: `${colorPalette.dockedBg} backdrop-blur-md shadow-2xl ${fontClass}`,
         sp1Inst: colorPalette.nameText,
-        sp1Name: 'text-white',
+        sp1Name: isLightPalette && (config.themePreset === 'frosted_light' || config.lowerThirdColor === 'frosted_white') ? 'text-slate-950 font-black' : 'text-white font-extrabold',
         sp1Title: colorPalette.titleText,
-        badgeBorder: 'border-white/30 text-white',
+        badgeBorder: isLightPalette && (config.themePreset === 'frosted_light' || config.lowerThirdColor === 'frosted_white') ? 'border-slate-300 text-slate-800' : 'border-white/30 text-white',
         sp2Inst: colorPalette.nameText,
-        sp2Name: 'text-white',
+        sp2Name: isLightPalette && (config.themePreset === 'frosted_light' || config.lowerThirdColor === 'frosted_white') ? 'text-slate-950 font-black' : 'text-white font-extrabold',
         sp2Title: colorPalette.titleText,
         accent1: colorPalette.accent1,
         accent2: colorPalette.accent2,
@@ -227,6 +262,20 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
       case 'classic_signature':
       case 'uajy_signature':
       default:
+        if (config.themePreset === 'frosted_light' || config.lowerThirdColor === 'frosted_white') {
+          return {
+            container: `bg-white/90 border-t-4 border-b-2 border-white text-slate-900 backdrop-blur-2xl shadow-2xl ${fontClass}`,
+            sp1Inst: 'text-slate-950 font-black',
+            sp1Name: 'text-slate-950 font-extrabold',
+            sp1Title: 'text-slate-700 font-bold',
+            badgeBorder: 'border-slate-300 text-slate-900',
+            sp2Inst: 'text-slate-950 font-black',
+            sp2Name: 'text-slate-950 font-extrabold',
+            sp2Title: 'text-slate-700 font-bold',
+            accent1: 'bg-slate-900',
+            accent2: 'bg-slate-600',
+          };
+        }
         if (config.themePreset === 'dark') {
           return {
             container: `bg-[#093A6E] border-t-4 border-b-2 border-[#FFF7E5] text-[#FFF7E5] shadow-2xl ${fontClass}`,
@@ -290,7 +339,7 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
               <div className="w-full flex items-center justify-between gap-2 md:gap-4">
                 {/* Speaker 1 (Host / Left) */}
                 <div className="flex-1 min-w-0 flex items-center gap-2.5">
-                  <div className={`w-2 h-8 ${dockedTheme.accent1} rounded-full shrink-0`} />
+                  <div className={`w-2 h-8 ${dockedTheme.accent1} ${shapeClass.accentPill} shrink-0`} />
                   <div className="truncate">
                     <div className={`text-[10px] md:text-xs font-black uppercase tracking-wider truncate ${dockedTheme.sp1Inst}`}>
                       {currentSpeaker.institution || 'PEMBICARA'}
@@ -327,14 +376,14 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className={`w-2 h-8 ${dockedTheme.accent2} rounded-full shrink-0`} />
+                  <div className={`w-2 h-8 ${dockedTheme.accent2} ${shapeClass.accentPill} shrink-0`} />
                 </div>
               </div>
             ) : (
               /* Single Speaker Full Width Banner */
               <div className="w-full flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-2.5 h-9 ${dockedTheme.accent1} rounded-full shrink-0`} />
+                  <div className={`w-2.5 h-9 ${dockedTheme.accent1} ${shapeClass.accentPill} shrink-0`} />
                   <div className="truncate">
                     {currentSpeaker.institution && (
                       <div className={`text-[10px] md:text-xs font-black uppercase tracking-widest truncate ${dockedTheme.sp1Inst}`}>
@@ -352,7 +401,7 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
                   </div>
                 </div>
                 {currentSpeaker.topic && (
-                  <div className="hidden sm:block text-right bg-black/20 border border-white/20 px-3.5 py-1.5 rounded-xl shrink-0">
+                  <div className={`hidden sm:block text-right bg-black/20 border border-white/20 px-3.5 py-1.5 ${shapeClass.tag} shrink-0`}>
                     <div className={`text-[10px] font-extrabold uppercase tracking-wider ${dockedTheme.sp1Inst}`}>TOPIK MATERI</div>
                     <div className="text-xs font-bold max-w-xs truncate">{currentSpeaker.topic}</div>
                   </div>

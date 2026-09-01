@@ -1,5 +1,6 @@
 import { OverlayConfig } from '../types';
 import { UAJY_EMBLEM_SVG, UAJY_SECONDARY_SVG } from '../assets/uajyLogo';
+import { DEFAULT_CATHOLIC_MASS_RUNDOWN } from './defaultLiturgy';
 
 export const PRIMARY_UAJY_LOGO_1 = UAJY_EMBLEM_SVG;
 export const PRIMARY_UAJY_LOGO_2 = UAJY_SECONDARY_SVG;
@@ -66,10 +67,10 @@ export const defaultConfig: OverlayConfig = {
   showLowerThird: true,
   lowerThirdStyle: 'classic_signature',
   lowerThirdPosition: 'bottom_left',
-  lowerThirdShape: 'rounded',
+  lowerThirdShape: 'sharp',
   lowerThirdColor: 'navy',
   lowerThirdFont: 'sans',
-  layoutShape: 'rounded',
+  layoutShape: 'sharp',
   lowerThirdAnimationKey: 1,
   customBannerText: 'Selamat Datang di Live Streaming Campus Ministry UAJY',
 
@@ -112,4 +113,14 @@ export const defaultConfig: OverlayConfig = {
   waitingBgColor: '#FFF7E5',
   waitingAccentColor: '#093A6E',
   waitingFontFamily: 'sans',
+
+  // Liturgy Mass Rundown Tracker
+  showLiturgyTracker: true,
+  activeLiturgyIndex: 0,
+  liturgyTrackerPosition: 'top_right',
+  liturgyTrackerStyle: 'modern_glass',
+  showLiturgyPosture: true,
+  showLiturgyNextPreview: true,
+  liturgyItems: DEFAULT_CATHOLIC_MASS_RUNDOWN,
+  liturgyAnimationKey: 1,
 };

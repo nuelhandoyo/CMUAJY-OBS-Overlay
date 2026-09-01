@@ -20,19 +20,20 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
       ? 'text-lg font-bold'
       : 'text-base font-semibold';
 
-  const bgColor = config.tickerBgColor || (config.themePreset === 'cream' ? '#FFF7E5' : '#093A6E');
-  const textColor = config.tickerTextColor || (config.themePreset === 'cream' ? '#093A6E' : '#FFF7E5');
-  const badgeBgColor = config.tickerBadgeBgColor || (config.themePreset === 'cream' ? '#093A6E' : '#FFF7E5');
+  const isFrosted = config.themePreset === 'frosted_light';
+  const bgColor = config.tickerBgColor || (isFrosted ? 'rgba(255, 255, 255, 0.90)' : config.themePreset === 'cream' ? '#FFF7E5' : '#093A6E');
+  const textColor = config.tickerTextColor || (isFrosted ? '#0F172A' : config.themePreset === 'cream' ? '#093A6E' : '#FFF7E5');
+  const badgeBgColor = config.tickerBadgeBgColor || (isFrosted ? '#0F172A' : config.themePreset === 'cream' ? '#093A6E' : '#FFF7E5');
   const badgeTitle = config.tickerBadgeTitle || 'INFORMASI';
 
-  const isLightBg = bgColor.toUpperCase().includes('FFF7E5') || bgColor.toUpperCase().includes('FAF3E0') || bgColor.toUpperCase().includes('FFFFFF');
-  const isBadgeLight = badgeBgColor.toUpperCase().includes('FFF7E5') || badgeBgColor.toUpperCase().includes('FAF3E0') || badgeBgColor.toUpperCase().includes('FFFFFF');
-  const badgeTextColor = isBadgeLight ? '#093A6E' : '#FFF7E5';
+  const isLightBg = isFrosted || bgColor.toUpperCase().includes('FFF7E5') || bgColor.toUpperCase().includes('FAF3E0') || bgColor.toUpperCase().includes('FFFFFF') || bgColor.includes('255, 255, 255');
+  const isBadgeLight = !isFrosted && (badgeBgColor.toUpperCase().includes('FFF7E5') || badgeBgColor.toUpperCase().includes('FAF3E0') || badgeBgColor.toUpperCase().includes('FFFFFF'));
+  const badgeTextColor = isFrosted ? '#FFFFFF' : isBadgeLight ? '#093A6E' : '#FFF7E5';
 
-  const dotColorClass = isLightBg ? 'text-[#093A6E] font-extrabold' : 'text-amber-400 font-extrabold';
-  const igColorClass = isLightBg ? 'text-[#926C35] font-bold' : 'text-amber-300';
-  const ytColorClass = isLightBg ? 'text-red-700 font-bold' : 'text-red-300';
-  const webColorClass = isLightBg ? 'text-[#093A6E] font-bold' : 'text-blue-200';
+  const dotColorClass = isFrosted ? 'text-slate-900 font-black' : isLightBg ? 'text-[#093A6E] font-extrabold' : 'text-amber-400 font-extrabold';
+  const igColorClass = isFrosted ? 'text-pink-700 font-bold' : isLightBg ? 'text-[#926C35] font-bold' : 'text-amber-300';
+  const ytColorClass = isFrosted ? 'text-red-600 font-bold' : isLightBg ? 'text-red-700 font-bold' : 'text-red-300';
+  const webColorClass = isFrosted ? 'text-blue-700 font-bold' : isLightBg ? 'text-[#093A6E] font-bold' : 'text-blue-200';
 
   return (
     <motion.div
@@ -40,11 +41,11 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 30 }}
       transition={{ duration: 0.4 }}
-      className={`w-full shrink-0 z-40 border-t-4 shadow-2xl h-14 flex items-center overflow-hidden ${fontClass}`}
+      className={`w-full shrink-0 z-40 ${isFrosted ? 'backdrop-blur-xl border-t-2' : 'border-t-4'} shadow-2xl h-14 flex items-center overflow-hidden ${fontClass}`}
       style={{
         backgroundColor: bgColor,
         color: textColor,
-        borderTopColor: isLightBg ? '#093A6E' : '#FFF7E5',
+        borderTopColor: isFrosted ? '#FFFFFF' : isLightBg ? '#093A6E' : '#FFF7E5',
       }}
     >
       {/* Ticker Title Badge */}

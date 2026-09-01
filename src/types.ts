@@ -4,8 +4,8 @@ export type CameraMode = 'chroma_green' | 'transparent';
 
 export type LowerThirdStyle = 'classic_signature' | 'sleek_modern' | 'minimal_gold' | 'futuristic_glass' | 'uajy_signature';
 
-export type LowerThirdShape = 'rounded' | 'sharp' | 'pill' | 'bevel';
-export type LowerThirdColor = 'navy' | 'blue' | 'crimson' | 'emerald' | 'gold' | 'dark' | 'custom';
+export type LowerThirdShape = 'sharp' | 'bevel';
+export type LowerThirdColor = 'navy' | 'blue' | 'crimson' | 'emerald' | 'gold' | 'dark' | 'frosted_white' | 'custom';
 export type LowerThirdFont = 'sans' | 'mono' | 'display' | 'poppins' | 'oswald';
 
 export interface Speaker {
@@ -16,6 +16,17 @@ export interface Speaker {
   avatarUrl?: string;
   topic?: string;
 }
+
+export interface LiturgyStep {
+  id: string;
+  category: string; // e.g. "RITUS PEMBUKA", "LITURGI SABDA", "LITURGI EKARISTI", "KOMUNI", "RITUS PENUTUP"
+  title: string;    // e.g. "Perarakan Masuk", "Tanda Salib & Salam", "Doa Syukur Agung"
+  posture?: string;  // e.g. "Umat Berdiri", "Umat Duduk", "Umat Berlutut", "Umat Berjalan"
+  notes?: string;   // optional notes or hymn numbers
+}
+
+export type LiturgyTrackerPosition = 'top_right' | 'top_left' | 'top_center' | 'bottom_right';
+export type LiturgyTrackerStyle = 'modern_glass' | 'elegant_gold' | 'sleek_dark' | 'compact_badge';
 
 export interface SlideItem {
   id: string;
@@ -75,8 +86,8 @@ export interface OverlayConfig {
   youtubeHandle: string;
   websiteUrl: string;
 
-  // Theme Preset Mode (Cream Light vs Dark Navy)
-  themePreset?: 'cream' | 'dark';
+  // Theme Preset Mode (Cream Light vs Dark Navy vs Frosted Glass Light)
+  themePreset?: 'cream' | 'dark' | 'frosted_light';
 
   // Background Customization
   backgroundUrl?: string;
@@ -112,4 +123,14 @@ export interface OverlayConfig {
   waitingBgColor?: string;       // e.g. "#093A6E"
   waitingAccentColor?: string;   // e.g. "#F59E0B"
   waitingFontFamily?: LowerThirdFont;
+
+  // Mass Liturgy / Procession Floating Tracker
+  showLiturgyTracker: boolean;
+  activeLiturgyIndex: number;
+  liturgyTrackerPosition: LiturgyTrackerPosition;
+  liturgyTrackerStyle?: LiturgyTrackerStyle;
+  showLiturgyPosture?: boolean;
+  showLiturgyNextPreview?: boolean;
+  liturgyItems: LiturgyStep[];
+  liturgyAnimationKey: number;
 }

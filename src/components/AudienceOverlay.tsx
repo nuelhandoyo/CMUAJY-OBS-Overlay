@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { OverlayConfig } from '../types';
 import { LowerThird } from './overlay/LowerThird';
 import { TickerBar } from './overlay/TickerBar';
+import { LiturgyFloatingTracker } from './overlay/LiturgyFloatingTracker';
 import { FuturisticBackground } from './overlay/FuturisticBackground';
 import { PresenterWithSlideView } from './views/PresenterWithSlideView';
 import { SlideWithTwoPresentersView } from './views/SlideWithTwoPresentersView';
@@ -185,6 +186,9 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
 
           {/* Lower Third Layer (Inside main stage, above ticker) */}
           <LowerThird config={config} />
+
+          {/* Liturgy Procession Floating Tracker Layer */}
+          <LiturgyFloatingTracker config={config} />
         </div>
 
         {/* Ticker Layer at bottom */}

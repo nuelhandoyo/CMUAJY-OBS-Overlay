@@ -1,0 +1,236 @@
+import { LiturgyStep } from '../types';
+
+export const DEFAULT_CATHOLIC_MASS_RUNDOWN: LiturgyStep[] = [
+  // --- 1. RITUS PEMBUKA ---
+  {
+    id: 'lit-1',
+    category: 'RITUS PEMBUKA',
+    title: 'Perarakan Masuk & Lagu Pembuka',
+    posture: 'Umat Berdiri',
+    notes: 'Imam, Lektor, & Putra Altar berarak menuju Altar',
+  },
+  {
+    id: 'lit-2',
+    category: 'RITUS PEMBUKA',
+    title: 'Tanda Salib & Salam Pembuka',
+    posture: 'Umat Berdiri',
+    notes: 'Dalam nama Bapa, dan Putra, dan Roh Kudus...',
+  },
+  {
+    id: 'lit-3',
+    category: 'RITUS PEMBUKA',
+    title: 'Pengantar & Pernyataan Tobat',
+    posture: 'Umat Berdiri',
+    notes: 'Saya mengaku kepada Allah yang Mahakuasa...',
+  },
+  {
+    id: 'lit-4',
+    category: 'RITUS PEMBUKA',
+    title: 'Tuhan Kasihanilah Kami (Kyrie)',
+    posture: 'Umat Berdiri',
+    notes: 'Kyrie Eleison / Tuhan Kasihanilah Kami',
+  },
+  {
+    id: 'lit-5',
+    category: 'RITUS PEMBUKA',
+    title: 'Madah Kemuliaan (Gloria)',
+    posture: 'Umat Berdiri',
+    notes: 'Kemuliaan kepada Allah di surga...',
+  },
+  {
+    id: 'lit-6',
+    category: 'RITUS PEMBUKA',
+    title: 'Doa Kolekta (Doa Pembuka)',
+    posture: 'Umat Berdiri',
+    notes: 'Marilah kita berdoa...',
+  },
+
+  // --- 2. LITURGI SABDA ---
+  {
+    id: 'lit-7',
+    category: 'LITURGI SABDA',
+    title: 'Bacaan Pertama (Kitab Suci)',
+    posture: 'Umat Duduk',
+    notes: 'Pembacaan dari Kitab Suci Perjanjian Lama / Kisah Para Rasul',
+  },
+  {
+    id: 'lit-8',
+    category: 'LITURGI SABDA',
+    title: 'Mazmur Tanggapan',
+    posture: 'Umat Duduk',
+    notes: 'Dinyanyikan oleh Pemazmur & Umat menyahut refren',
+  },
+  {
+    id: 'lit-9',
+    category: 'LITURGI SABDA',
+    title: 'Bacaan Kedua (Surat Para Rasul)',
+    posture: 'Umat Duduk',
+    notes: 'Pembacaan dari Surat Rasul Paulus / Surat Rasuli',
+  },
+  {
+    id: 'lit-10',
+    category: 'LITURGI SABDA',
+    title: 'Bait Pengantar Injil (Aleluya)',
+    posture: 'Umat Berdiri',
+    notes: 'Menyanyikan Aleluya menyambut Sabda Tuhan',
+  },
+  {
+    id: 'lit-11',
+    category: 'LITURGI SABDA',
+    title: 'Bacaan Injil Kudus',
+    posture: 'Umat Berdiri',
+    notes: 'Inilah Injil Suci menurut...',
+  },
+  {
+    id: 'lit-12',
+    category: 'LITURGI SABDA',
+    title: 'Homili / Khotbah Pastor',
+    posture: 'Umat Duduk',
+    notes: 'Renungan sabda oleh Imam Selebran',
+  },
+  {
+    id: 'lit-13',
+    category: 'LITURGI SABDA',
+    title: 'Syahadat / Aku Percaya (Kredo)',
+    posture: 'Umat Berdiri',
+    notes: 'Pengakuan Iman Para Rasul / Nicea-Konstantinopel',
+  },
+  {
+    id: 'lit-14',
+    category: 'LITURGI SABDA',
+    title: 'Doa Umat',
+    posture: 'Umat Berdiri',
+    notes: 'Kabulkanlah doa kami, ya Tuhan...',
+  },
+
+  // --- 3. LITURGI EKARISTI ---
+  {
+    id: 'lit-15',
+    category: 'LITURGI EKARISTI',
+    title: 'Persiapan Persembahan & Kolekte',
+    posture: 'Umat Duduk',
+    notes: 'Pengantaran roti, anggur, dan derma persembahan',
+  },
+  {
+    id: 'lit-16',
+    category: 'LITURGI EKARISTI',
+    title: 'Doa Persiapan Persembahan',
+    posture: 'Umat Berdiri',
+    notes: 'Berdoalah saudara-saudari agar persembahanku...',
+  },
+  {
+    id: 'lit-17',
+    category: 'LITURGI EKARISTI',
+    title: 'Prefasi (Dialog Pembuka Syukur)',
+    posture: 'Umat Berdiri',
+    notes: 'Tuhan bersamamu. Dan bersama rohmu...',
+  },
+  {
+    id: 'lit-18',
+    category: 'LITURGI EKARISTI',
+    title: 'Kudus (Sanctus)',
+    posture: 'Umat Berdiri',
+    notes: 'Kudus, kudus, kuduslah Tuhan...',
+  },
+  {
+    id: 'lit-19',
+    category: 'LITURGI EKARISTI',
+    title: 'Doa Syukur Agung & Konsekrasi',
+    posture: 'Umat Berlutut',
+    notes: 'Inilah Tubuh-Ku... Inilah Darah-Ku...',
+  },
+  {
+    id: 'lit-20',
+    category: 'LITURGI EKARISTI',
+    title: 'Anamnese & Doksologi (Amin Agung)',
+    posture: 'Umat Berdiri',
+    notes: 'Dengan pengantaraan Kristus, bersama Dia...',
+  },
+  {
+    id: 'lit-21',
+    category: 'KOMUNI',
+    title: 'Bapa Kami (Doa Tuhan)',
+    posture: 'Umat Berdiri',
+    notes: 'Bapa kami yang ada di surga...',
+  },
+  {
+    id: 'lit-22',
+    category: 'KOMUNI',
+    title: 'Doa Damai & Salam Damai',
+    posture: 'Umat Berdiri',
+    notes: 'Damai Tuhan bersamamu selalu...',
+  },
+  {
+    id: 'lit-23',
+    category: 'KOMUNI',
+    title: 'Pemecahan Roti (Anak Domba Allah)',
+    posture: 'Umat Berlutut',
+    notes: 'Agnus Dei / Anak Domba Allah yang menghapus dosa dunia...',
+  },
+  {
+    id: 'lit-24',
+    category: 'KOMUNI',
+    title: 'Penerimaan Komuni Kudus',
+    posture: 'Umat Berjalan',
+    notes: 'Tubuh Kristus. Amin.',
+  },
+  {
+    id: 'lit-25',
+    category: 'KOMUNI',
+    title: 'Saat Hening Bersyukur',
+    posture: 'Umat Duduk',
+    notes: 'Doa pribadi & ucapan syukur dalam keheningan batin',
+  },
+  {
+    id: 'lit-26',
+    category: 'KOMUNI',
+    title: 'Doa Sesudah Komuni',
+    posture: 'Umat Berdiri',
+    notes: 'Marilah kita berdoa...',
+  },
+
+  // --- 4. RITUS PENUTUP ---
+  {
+    id: 'lit-27',
+    category: 'RITUS PENUTUP',
+    title: 'Pengumuman Liturgi & Kampus',
+    posture: 'Umat Duduk',
+    notes: 'Warta Campus Ministry & agenda kegiatan mendatang',
+  },
+  {
+    id: 'lit-28',
+    category: 'RITUS PENUTUP',
+    title: 'Berkat Meriah & Pengutusan',
+    posture: 'Umat Berdiri',
+    notes: 'Semoga Saudara sekalian diberkati oleh Allah...',
+  },
+  {
+    id: 'lit-29',
+    category: 'RITUS PENUTUP',
+    title: 'Perarakan Keluar & Lagu Penutup',
+    posture: 'Umat Berdiri',
+    notes: 'Pergilah dalam damai, kamu diutus...',
+  },
+];
+
+export const TEMPLATE_DAILY_MASS_RUNDOWN: LiturgyStep[] = [
+  { id: 'dm-1', category: 'RITUS PEMBUKA', title: 'Perarakan & Tanda Salib', posture: 'Umat Berdiri' },
+  { id: 'dm-2', category: 'RITUS PEMBUKA', title: 'Pernyataan Tobat & Doa Pembuka', posture: 'Umat Berdiri' },
+  { id: 'dm-3', category: 'LITURGI SABDA', title: 'Bacaan Kitab Suci & Mazmur', posture: 'Umat Duduk' },
+  { id: 'dm-4', category: 'LITURGI SABDA', title: 'Bacaan Injil Kudus & Homili', posture: 'Umat Berdiri' },
+  { id: 'dm-5', category: 'LITURGI SABDA', title: 'Doa Umat', posture: 'Umat Berdiri' },
+  { id: 'dm-6', category: 'LITURGI EKARISTI', title: 'Persiapan Persembahan', posture: 'Umat Duduk' },
+  { id: 'dm-7', category: 'LITURGI EKARISTI', title: 'Doa Syukur Agung & Konsekrasi', posture: 'Umat Berlutut' },
+  { id: 'dm-8', category: 'KOMUNI', title: 'Bapa Kami & Salam Damai', posture: 'Umat Berdiri' },
+  { id: 'dm-9', category: 'KOMUNI', title: 'Penerimaan Komuni Kudus', posture: 'Umat Berjalan' },
+  { id: 'dm-10', category: 'RITUS PENUTUP', title: 'Doa Penutup & Berkat Pengutusan', posture: 'Umat Berdiri' },
+];
+
+export const TEMPLATE_WORD_LITURGY_RUNDOWN: LiturgyStep[] = [
+  { id: 'wl-1', category: 'RITUS PEMBUKA', title: 'Lagu Pembuka & Tanda Salib', posture: 'Umat Berdiri' },
+  { id: 'wl-2', category: 'RITUS PEMBUKA', title: 'Doa Tobat & Doa Pembuka', posture: 'Umat Berdiri' },
+  { id: 'wl-3', category: 'LITURGI SABDA', title: 'Bacaan Pertama & Mazmur Tanggapan', posture: 'Umat Duduk' },
+  { id: 'wl-4', category: 'LITURGI SABDA', title: 'Bacaan Injil & Renungan Sabda', posture: 'Umat Berdiri' },
+  { id: 'wl-5', category: 'DOA & PUJIAN', title: 'Doa Umat & Doa Taize / Syukur', posture: 'Umat Berlutut' },
+  { id: 'wl-6', category: 'RITUS PENUTUP', title: 'Bapa Kami & Berkat Penutup', posture: 'Umat Berdiri' },
+];

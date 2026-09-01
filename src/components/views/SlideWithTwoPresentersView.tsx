@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { OverlayConfig } from '../../types';
 import { CameraBox } from '../overlay/CameraBox';
 import { SlideCanvas } from '../overlay/SlideCanvas';
-import { getLayoutShapeClass } from '../../utils/shapeUtils';
+import { getLayoutShapeClass, getFrameBorderStyle } from '../../utils/shapeUtils';
 
 interface SlideWithTwoPresentersViewProps {
   config: OverlayConfig;
@@ -15,35 +15,43 @@ export const SlideWithTwoPresentersView: React.FC<SlideWithTwoPresentersViewProp
   config,
 }) => {
   const shapeClass = getLayoutShapeClass(config.layoutShape);
+  const frameStyle = getFrameBorderStyle(
+    config.showCameraFrame,
+    config.frameBorderColor,
+    config.frameBorderWidth,
+    config.layoutShape
+  );
 
   return (
     <div className="w-full h-full relative p-8 flex items-center justify-center bg-transparent font-sans overflow-hidden">
-      <div className="w-full h-full flex items-stretch justify-center gap-6 overflow-hidden">
-        {/* LEFT / MAIN COLUMN: Presentation Slide Box (16:9 Aspect Ratio) */}
+      <div className="w-full max-w-full flex items-stretch justify-center gap-6 overflow-hidden">
+        {/* LEFT / MAIN COLUMN: Presentation Slide Box (7:3 Proportions -> 70% Width, Strictly 16:9 Aspect Ratio) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96, x: -20 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className={`aspect-video h-full max-h-[880px] bg-slate-950 ${shapeClass} overflow-hidden border-2 border-slate-700/80 shadow-[0_15px_40px_rgba(15,23,42,0.4)] relative flex flex-col shrink-0`}
+          className={`flex-[7] min-w-0 aspect-video bg-slate-950 ${shapeClass} relative flex flex-col shrink-0 shadow-2xl`}
+          style={frameStyle}
         >
-          <SlideCanvas config={config} isAudienceView={true} imageFitMode="contain" />
+          <SlideCanvas config={config} isAudienceView={true} imageFitMode="contain" className="w-full h-full" />
         </motion.div>
 
-        {/* RIGHT COLUMN: 2 Presenter Camera Boxes (Stacked Vertically) */}
+        {/* RIGHT COLUMN: 2 Presenter Camera Boxes (7:3 Proportions -> 30% Width, Stacked Vertically to match Slide Height) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96, x: 20 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
-          className="flex-1 h-full max-h-[880px] min-w-[360px] flex flex-col gap-4 shrink-0 self-stretch justify-between"
+          className="flex-[3] min-w-0 flex flex-col gap-4 shrink-0 self-stretch justify-between"
         >
           {/* Top Camera: Presenter 1 */}
-          <div className={`flex-1 w-full min-h-0 bg-slate-950 ${shapeClass} overflow-hidden border-2 border-slate-700/80 shadow-[0_10px_25px_rgba(15,23,42,0.3)] relative`}>
+          <div
+            className={`flex-1 w-full min-h-0 ${shapeClass} relative flex items-center justify-center shadow-xl`}
+            style={frameStyle}
+          >
             <CameraBox
               cameraMode={config.cameraMode}
               chromaColor={config.chromaColor}
-              showFrame={config.showCameraFrame}
-              frameColor={config.frameBorderColor}
-              borderWidth={config.frameBorderWidth}
+              showFrame={false}
               shape={config.layoutShape}
               label="PEMBICARA 1"
               className="w-full h-full"
@@ -51,13 +59,14 @@ export const SlideWithTwoPresentersView: React.FC<SlideWithTwoPresentersViewProp
           </div>
 
           {/* Bottom Camera: Presenter 2 */}
-          <div className={`flex-1 w-full min-h-0 bg-slate-950 ${shapeClass} overflow-hidden border-2 border-slate-700/80 shadow-[0_10px_25px_rgba(15,23,42,0.3)] relative`}>
+          <div
+            className={`flex-1 w-full min-h-0 ${shapeClass} relative flex items-center justify-center shadow-xl`}
+            style={frameStyle}
+          >
             <CameraBox
               cameraMode={config.cameraMode}
               chromaColor={config.chromaColor}
-              showFrame={config.showCameraFrame}
-              frameColor="#0284C7"
-              borderWidth={config.frameBorderWidth}
+              showFrame={false}
               shape={config.layoutShape}
               label="PEMBICARA 2"
               className="w-full h-full"
@@ -68,4 +77,3 @@ export const SlideWithTwoPresentersView: React.FC<SlideWithTwoPresentersViewProp
     </div>
   );
 };
-

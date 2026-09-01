@@ -99,6 +99,19 @@ export function sanitizeConfig(parsed: any): OverlayConfig {
     cfg.waitingAccentColor = '#093A6E';
   }
 
+  if (!cfg.liturgyItems || !Array.isArray(cfg.liturgyItems) || cfg.liturgyItems.length === 0) {
+    cfg.liturgyItems = defaultConfig.liturgyItems;
+  }
+  if (typeof cfg.activeLiturgyIndex !== 'number' || cfg.activeLiturgyIndex < 0) {
+    cfg.activeLiturgyIndex = 0;
+  }
+  if (cfg.showLiturgyTracker === undefined) {
+    cfg.showLiturgyTracker = true;
+  }
+  if (!cfg.liturgyTrackerPosition) {
+    cfg.liturgyTrackerPosition = 'top_right';
+  }
+
   return cfg;
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { OverlayConfig } from '../types';
 import { AudienceOverlay } from './AudienceOverlay';
+import { LiturgyManager } from './admin/LiturgyManager';
 import { getCanvaEmbedUrl } from '../utils/canva';
 import { UAJY_EMBLEM_SVG, UAJY_SECONDARY_SVG } from '../assets/uajyLogo';
 import {
@@ -35,6 +36,9 @@ import {
   Key,
   RefreshCw,
   Sliders,
+  ListOrdered,
+  SkipBack,
+  SkipForward,
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -61,7 +65,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onChangeRoomCode,
   syncStatus,
 }) => {
-  const [activeTab, setActiveTab] = useState<'layout' | 'speaker' | 'waiting_screen' | 'camera' | 'slides' | 'branding'>('layout');
+  const [activeTab, setActiveTab] = useState<'layout' | 'liturgy' | 'speaker' | 'waiting_screen' | 'camera' | 'slides' | 'branding'>('layout');
   const [copiedType, setCopiedType] = useState<'audience' | 'operator' | 'room_code' | null>(null);
   const [showObsGuideModal, setShowObsGuideModal] = useState(false);
   const [newSlideUrl, setNewSlideUrl] = useState('');
@@ -457,6 +461,101 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Row 3: Quick Switch Tema Warna */}
+              <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-200/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                    🎨 Quick Switch Tema:
+                  </span>
+                  <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    {config.themePreset === 'frosted_light' ? '❄️ FROSTED GLASS' : config.themePreset === 'dark' ? '🌙 DARK NAVY' : '🍦 CREAM LIGHT'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    onClick={() =>
+                      updateConfig({
+                        themePreset: 'cream',
+                        lowerThirdColor: 'navy',
+                        customPrimaryBgColor: '#FFF7E5',
+                        customAccentColor: '#093A6E',
+                        customNameColor: '#093A6E',
+                        customTitleColor: '#926C35',
+                        frameBorderColor: '#093A6E',
+                        tickerBgColor: '#FFF7E5',
+                        tickerTextColor: '#093A6E',
+                        tickerBadgeBgColor: '#093A6E',
+                        waitingBgColor: '#FFF7E5',
+                        waitingAccentColor: '#093A6E',
+                      })
+                    }
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      (config.themePreset || 'cream') === 'cream'
+                        ? 'bg-[#FFF7E5] text-[#093A6E] border-[#093A6E] ring-2 ring-amber-400 font-black'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>🍦</span>
+                    <span>Cream Light</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      updateConfig({
+                        themePreset: 'dark',
+                        lowerThirdColor: 'navy',
+                        customPrimaryBgColor: '#093A6E',
+                        customAccentColor: '#FFF7E5',
+                        customNameColor: '#FFF7E5',
+                        customTitleColor: '#A88337',
+                        frameBorderColor: '#FFF7E5',
+                        tickerBgColor: '#093A6E',
+                        tickerTextColor: '#FFF7E5',
+                        tickerBadgeBgColor: '#FFF7E5',
+                        waitingBgColor: '#093A6E',
+                        waitingAccentColor: '#FFF7E5',
+                      })
+                    }
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      config.themePreset === 'dark'
+                        ? 'bg-[#093A6E] text-[#FFF7E5] border-[#FFF7E5] ring-2 ring-[#FFF7E5] font-black'
+                        : 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
+                    }`}
+                  >
+                    <span>🌙</span>
+                    <span>Dark Navy</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      updateConfig({
+                        themePreset: 'frosted_light',
+                        lowerThirdColor: 'frosted_white',
+                        customPrimaryBgColor: 'rgba(255, 255, 255, 0.85)',
+                        customAccentColor: '#0F172A',
+                        customNameColor: '#0F172A',
+                        customTitleColor: '#475569',
+                        frameBorderColor: '#FFFFFF',
+                        tickerBgColor: 'rgba(255, 255, 255, 0.90)',
+                        tickerTextColor: '#0F172A',
+                        tickerBadgeBgColor: '#0F172A',
+                        waitingBgColor: 'rgba(255, 255, 255, 0.85)',
+                        waitingAccentColor: '#FFFFFF',
+                      })
+                    }
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      config.themePreset === 'frosted_light'
+                        ? 'bg-white text-slate-900 border-slate-900 ring-2 ring-blue-500 font-black shadow-xs'
+                        : 'bg-white/90 text-slate-800 border-slate-300 hover:bg-white'
+                    }`}
+                  >
+                    <span>❄️</span>
+                    <span>Frosted Glass</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Live Preview Frame Container */}
@@ -504,6 +603,105 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <span className="font-mono text-slate-700">1920×1080 (FHD) / 3840×2160 (4K UHD)</span>
                 <span className="text-emerald-700 font-bold">✓ Skala Otomatis</span>
               </div>
+            </div>
+
+            {/* QUICK LITURGY PROCESSION CONTROLLER HUD */}
+            <div className="mt-2 pt-3 border-t border-slate-200 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-xs font-extrabold text-[#093A6E] uppercase tracking-wider">
+                <span className="flex items-center gap-1.5">
+                  <ListOrdered className="w-4 h-4 text-amber-500" />
+                  Live Prosesi Misa Saat Ini
+                </span>
+                <button
+                  onClick={() =>
+                    updateConfig({
+                      showLiturgyTracker: !config.showLiturgyTracker,
+                      liturgyAnimationKey: (config.liturgyAnimationKey || 0) + 1,
+                    })
+                  }
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
+                    config.showLiturgyTracker
+                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                      : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {config.showLiturgyTracker ? '🟢 FLOATING ON' : '⚪ OFF'}
+                </button>
+              </div>
+
+              {(() => {
+                const lItems = config.liturgyItems || [];
+                const lIdx = Math.max(0, Math.min(config.activeLiturgyIndex || 0, Math.max(0, lItems.length - 1)));
+                const currentL = lItems[lIdx];
+                return (
+                  <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50/50 rounded-xl border border-amber-300/80 flex flex-col gap-2 shadow-2xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono font-black bg-[#093A6E] text-amber-300 px-1.5 py-0.5 rounded">
+                        #{lIdx + 1}/{lItems.length}
+                      </span>
+                      {currentL?.posture && (
+                        <span className="text-[10px] font-black bg-amber-200 text-slate-900 px-2 py-0.5 rounded border border-amber-300 shrink-0">
+                          {currentL.posture}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="font-black text-xs text-slate-900 line-clamp-2">
+                      {currentL?.title || 'Belum ada data prosesi'}
+                    </div>
+
+                    {config.showLiturgyTracker && (
+                      <div className="text-[10px] text-blue-900 bg-blue-100/70 px-2 py-0.5 rounded font-medium">
+                        ℹ️ Name Tag otomatis dinonaktifkan
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-amber-200/60">
+                      <button
+                        onClick={() => {
+                          if (lIdx > 0) {
+                            updateConfig({
+                              activeLiturgyIndex: lIdx - 1,
+                              liturgyAnimationKey: (config.liturgyAnimationKey || 0) + 1,
+                              showLiturgyTracker: true,
+                            });
+                          }
+                        }}
+                        disabled={lIdx === 0}
+                        className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 disabled:opacity-40 text-slate-800 text-[11px] font-bold rounded-lg border border-slate-200 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      >
+                        <SkipBack className="w-3 h-3" />
+                        <span>Sebelumnya</span>
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('liturgy')}
+                        className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold rounded-lg border border-amber-300 transition-all cursor-pointer"
+                        title="Buka Tab Rundown Lengkap"
+                      >
+                        Kelola
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (lIdx < lItems.length - 1) {
+                            updateConfig({
+                              activeLiturgyIndex: lIdx + 1,
+                              liturgyAnimationKey: (config.liturgyAnimationKey || 0) + 1,
+                              showLiturgyTracker: true,
+                            });
+                          }
+                        }}
+                        disabled={lIdx >= lItems.length - 1}
+                        className="flex-1 py-1.5 px-2 bg-[#093A6E] hover:bg-blue-900 disabled:opacity-40 text-white text-[11px] font-black rounded-lg flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs"
+                      >
+                        <span>Berikutnya</span>
+                        <SkipForward className="w-3 h-3 text-amber-300" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* OPERATOR SLIDE CONTROL CARD */}
@@ -773,6 +971,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             >
               <Layout className="w-4 h-4 text-amber-400" />
               <span>Tampilan / Layout</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('liturgy')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs tracking-wide transition-all cursor-pointer shrink-0 ${
+                activeTab === 'liturgy'
+                  ? 'bg-[#093A6E] text-white shadow-md'
+                  : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <ListOrdered className="w-4 h-4 text-amber-400" />
+              <span>Rundown Misa / Prosesi</span>
             </button>
 
             <button
@@ -1074,21 +1284,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
                     Bentuk Frame Layout (Kamera & Slide Canvas)
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(
                       [
-                        { id: 'rounded', label: ' Rounded (Lengkung)' },
-                        { id: 'sharp', label: ' Sharp (Kotak Presisi)' },
-                        { id: 'bevel', label: ' Bevel (Miring Asimetris)' },
-                        { id: 'pill', label: ' Pill (Smooth Capsule)' },
+                        { id: 'sharp', label: '🔲 Sharp (Kotak Presisi + Rounded 4px)' },
+                        { id: 'bevel', label: '📐 Bevel (Miring Asimetris)' },
                       ] as const
                     ).map((sh) => (
                       <button
                         key={sh.id}
                         onClick={() => updateConfig({ layoutShape: sh.id })}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          (config.layoutShape || 'rounded') === sh.id
-                            ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs ring-2 ring-amber-300'
+                        className={`px-4 py-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                          (config.layoutShape || 'sharp') === sh.id
+                            ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm ring-2 ring-amber-300'
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
                         }`}
                       >
@@ -1103,21 +1311,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
                     Bentuk Lower Third (Banner Nama)
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(
                       [
-                        { id: 'rounded', label: ' Rounded (Lengkung)' },
-                        { id: 'sharp', label: ' Sharp (Kotak)' },
-                        { id: 'bevel', label: ' Bevel (Miring Asimetris)' },
-                        { id: 'pill', label: ' Pill (Capsule Lonjong)' },
+                        { id: 'sharp', label: '🔲 Sharp (Kotak + Rounded 4px)' },
+                        { id: 'bevel', label: '📐 Bevel (Miring Asimetris)' },
                       ] as const
                     ).map((sh) => (
                       <button
                         key={sh.id}
                         onClick={() => updateConfig({ lowerThirdShape: sh.id })}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          (config.lowerThirdShape || 'rounded') === sh.id
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                        className={`px-4 py-3 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                          (config.lowerThirdShape || 'sharp') === sh.id
+                            ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-2 ring-blue-300'
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
                         }`}
                       >
@@ -1138,7 +1344,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Mode 1: Versi Cream / Light (Dominan Cream) */}
                     <button
                       onClick={() =>
@@ -1169,7 +1375,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="font-extrabold text-xs text-[#093A6E]">
-                            1. Versi Cream / Light (Coloured)
+                            1. Versi Cream / Light
                           </span>
                           {(config.themePreset || 'cream') === 'cream' && (
                             <span className="text-[9px] bg-[#093A6E] text-[#FFF7E5] font-black px-2 py-0.5 rounded-full">
@@ -1213,7 +1419,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="font-extrabold text-xs text-[#FFF7E5]">
-                            2. Versi Dark (Warna Kebalikan)
+                            2. Versi Dark (Navy & Cream)
                           </span>
                           {config.themePreset === 'dark' && (
                             <span className="text-[9px] bg-[#FFF7E5] text-[#093A6E] font-black px-2 py-0.5 rounded-full">
@@ -1223,6 +1429,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                         <p className="text-[11px] text-slate-200 mt-0.5 leading-snug">
                           Warna kebalikannya: Background Navy (#093A6E) gelap dengan Teks & Badge Cream (#FFF7E5) serta aksen Gold (#A88337).
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Mode 3: Versi Frosted Glass Light (Putih Transparan) */}
+                    <button
+                      onClick={() =>
+                        updateConfig({
+                          themePreset: 'frosted_light',
+                          lowerThirdColor: 'frosted_white',
+                          customPrimaryBgColor: 'rgba(255, 255, 255, 0.85)',
+                          customAccentColor: '#0F172A',
+                          customNameColor: '#0F172A',
+                          customTitleColor: '#475569',
+                          frameBorderColor: '#FFFFFF',
+                          tickerBgColor: 'rgba(255, 255, 255, 0.90)',
+                          tickerTextColor: '#0F172A',
+                          tickerBadgeBgColor: '#0F172A',
+                          waitingBgColor: 'rgba(255, 255, 255, 0.85)',
+                          waitingAccentColor: '#FFFFFF',
+                        })
+                      }
+                      className={`p-3.5 rounded-xl border-2 text-left flex items-start gap-3 transition-all cursor-pointer ${
+                        config.themePreset === 'frosted_light'
+                          ? 'bg-white/95 text-slate-900 border-slate-900 shadow-md ring-2 ring-blue-500'
+                          : 'bg-white/80 text-slate-800 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-white/90 border-2 border-slate-300 flex items-center justify-center shrink-0 shadow-xs">
+                        <span className="text-base">❄️</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs text-slate-900">
+                            3. Frosted Glass (Putih Terang)
+                          </span>
+                          {config.themePreset === 'frosted_light' && (
+                            <span className="text-[9px] bg-slate-900 text-white font-black px-2 py-0.5 rounded-full">
+                              AKTIF
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                          Desain kaca buram transparan terang (Frosted White) berlatar blur mewah (backdrop-blur) dengan teks pekat & border putih.
                         </p>
                       </div>
                     </button>
@@ -1265,9 +1515,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
                     Skema Warna (Theme Color)
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
                     {(
                       [
+                        { id: 'frosted_white', label: 'Frosted (Putih)', colorBg: 'bg-white border border-slate-300' },
                         { id: 'navy', label: 'Deep Navy', colorBg: 'bg-[#093A6E]' },
                         { id: 'blue', label: 'Royal Blue', colorBg: 'bg-blue-600' },
                         { id: 'crimson', label: 'Crimson Red', colorBg: 'bg-rose-700' },
@@ -1280,14 +1531,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <button
                         key={cl.id}
                         onClick={() => updateConfig({ lowerThirdColor: cl.id })}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        className={`px-2.5 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           (config.lowerThirdColor || 'navy') === cl.id
                             ? 'bg-slate-900 text-white border-slate-900 shadow-xs ring-2 ring-amber-400'
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
                         }`}
                       >
                         <span className={`w-2.5 h-2.5 rounded-full ${cl.colorBg}`} />
-                        <span>{cl.label}</span>
+                        <span className="truncate">{cl.label}</span>
                       </button>
                     ))}
                   </div>
@@ -1511,6 +1762,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
+          {/* TAB: LITURGY PROCESSION RUNDOWN MANAGER */}
+          {activeTab === 'liturgy' && (
+            <LiturgyManager config={config} updateConfig={updateConfig} />
+          )}
+
           {/* TAB 2: MULTIFUNCTIONAL NAME TAG & SPEAKER EDITOR */}
           {activeTab === 'speaker' && (
             <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col gap-6 shadow-sm">
@@ -1544,7 +1800,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Speaker Details */}
+              {/* Active Liturgy Notice */}
+              {config.showLiturgyTracker && (
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">⚠️ Perhatian:</span>
+                    <span>Floating Rundown Misa saat ini sedang aktif di layar, sehingga Name Tag otomatis dinonaktifkan agar siaran tetap fokus dan bersih.</span>
+                  </div>
+                  <button
+                    onClick={() => updateConfig({ showLiturgyTracker: false })}
+                    className="shrink-0 px-3 py-1 bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold rounded-lg transition-all cursor-pointer text-[11px]"
+                  >
+                    Matikan Rundown
+                  </button>
+                </div>
+              )}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col gap-4">
                 <div className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center justify-between">
                   <div className="flex items-center gap-2">

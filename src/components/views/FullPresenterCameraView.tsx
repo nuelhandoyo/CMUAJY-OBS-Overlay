@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { OverlayConfig } from '../../types';
 import { CameraBox } from '../overlay/CameraBox';
-import { getLayoutShapeClass } from '../../utils/shapeUtils';
+import { getLayoutShapeClass, getFrameBorderStyle } from '../../utils/shapeUtils';
 
 interface FullPresenterCameraViewProps {
   config: OverlayConfig;
@@ -11,6 +11,14 @@ interface FullPresenterCameraViewProps {
 export const FullPresenterCameraView: React.FC<FullPresenterCameraViewProps> = ({ config }) => {
   const isNoBorder = config.layoutMode === 'full_presenter_noborder';
   const shapeClass = isNoBorder ? 'rounded-none' : getLayoutShapeClass(config.layoutShape);
+  const frameStyle = isNoBorder
+    ? { borderRadius: '0px', borderWidth: '0px' }
+    : getFrameBorderStyle(
+        config.showCameraFrame,
+        config.frameBorderColor,
+        config.frameBorderWidth,
+        config.layoutShape
+      );
 
   if (isNoBorder) {
     return (
@@ -26,8 +34,6 @@ export const FullPresenterCameraView: React.FC<FullPresenterCameraViewProps> = (
             cameraMode={config.cameraMode}
             chromaColor={config.chromaColor}
             showFrame={false}
-            frameColor={config.frameBorderColor}
-            borderWidth="0px"
             shape="sharp"
             className="w-full h-full rounded-none"
           />
@@ -43,14 +49,13 @@ export const FullPresenterCameraView: React.FC<FullPresenterCameraViewProps> = (
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className={`w-full h-full max-h-[940px] relative overflow-hidden ${shapeClass} border-2 border-slate-700/80 shadow-2xl`}
+        className={`w-full h-full max-h-[940px] relative ${shapeClass} shadow-2xl flex items-center justify-center`}
+        style={frameStyle}
       >
         <CameraBox
           cameraMode={config.cameraMode}
           chromaColor={config.chromaColor}
-          showFrame={config.showCameraFrame}
-          frameColor={config.frameBorderColor}
-          borderWidth={config.frameBorderWidth}
+          showFrame={false}
           shape={config.layoutShape}
           className="w-full h-full"
         />
@@ -58,4 +63,3 @@ export const FullPresenterCameraView: React.FC<FullPresenterCameraViewProps> = (
     </div>
   );
 };
-

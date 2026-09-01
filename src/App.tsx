@@ -178,11 +178,23 @@ export default function App() {
     handleConfigChange({ ...config, activeSlideIndex: prevIdx });
   };
 
+  const isTransparent = typeof window !== 'undefined' && (() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const trans = urlParams.get('transparent')?.toLowerCase();
+    const bg = urlParams.get('bg')?.toLowerCase();
+    const view = urlParams.get('view')?.toLowerCase();
+    return trans === 'true' || trans === '1' || bg === 'transparent' || view === 'overlay';
+  })();
+
   // 1. STANDALONE AUDIENCE / OBS BROWSER SOURCE VIEW
   // Clean 100% full-screen output for OBS Studio (Fits any resolution, never cropped)
   if (viewMode === 'audience') {
     return (
-      <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative select-none">
+      <div
+        className={`w-screen h-screen ${
+          isTransparent ? 'bg-transparent' : 'bg-black'
+        } flex items-center justify-center overflow-hidden relative select-none`}
+      >
         {/* Discreet hover utility for testing inside standard browsers (invisible on stream) */}
         <div className="fixed top-2 right-2 z-50 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-slate-900/90 border border-slate-700 p-1.5 rounded-xl text-xs flex items-center gap-2 text-white backdrop-blur-md shadow-2xl">
           <div className="flex items-center gap-1 text-[11px] text-amber-400 font-bold px-1.5">
@@ -203,6 +215,7 @@ export default function App() {
           onNextSlide={handleNextSlide}
           onPrevSlide={handlePrevSlide}
           isEmbeddedPreview={false}
+          isTransparent={isTransparent}
         />
       </div>
     );

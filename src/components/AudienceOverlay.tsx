@@ -18,6 +18,7 @@ interface AudienceOverlayProps {
   onNextSlide?: () => void;
   onPrevSlide?: () => void;
   isEmbeddedPreview?: boolean;
+  isTransparent?: boolean;
 }
 
 export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
@@ -25,6 +26,7 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
   onNextSlide,
   onPrevSlide,
   isEmbeddedPreview = false,
+  isTransparent = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
@@ -68,7 +70,9 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full relative overflow-hidden flex items-center justify-center bg-black select-none ${
+      className={`w-full h-full relative overflow-hidden flex items-center justify-center select-none ${
+        isTransparent ? 'bg-transparent' : 'bg-black'
+      } ${
         isEmbeddedPreview ? 'rounded-2xl border-2 border-slate-700 shadow-2xl aspect-video' : 'fixed inset-0'
       }`}
     >
@@ -78,7 +82,9 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
         smooth fonts, and precise broadcast proportions.
       */}
       <div
-        className="w-[1920px] h-[1080px] shrink-0 relative flex flex-col font-sans overflow-hidden bg-[#030712]"
+        className={`w-[1920px] h-[1080px] shrink-0 relative flex flex-col font-sans overflow-hidden ${
+          isTransparent ? 'bg-transparent' : 'bg-[#030712]'
+        }`}
         style={{
           transform: `scale(${scale})`,
           transformOrigin: 'center center',
@@ -86,8 +92,8 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
           MozOsxFontSmoothing: 'grayscale',
         }}
       >
-        {/* Futuristic Animated Technology Background */}
-        <FuturisticBackground backgroundUrl={config.backgroundUrl} />
+        {/* Futuristic Animated Technology Background (Rendered only when not transparent overlay) */}
+        {!isTransparent && <FuturisticBackground backgroundUrl={config.backgroundUrl} />}
 
         {/* Top Logo Watermark Overlay */}
         {config.showLogos && config.layoutMode !== 'waiting' && (

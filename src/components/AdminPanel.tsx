@@ -66,7 +66,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   syncStatus,
 }) => {
   const [activeTab, setActiveTab] = useState<'layout' | 'liturgy' | 'speaker' | 'waiting_screen' | 'camera' | 'slides' | 'branding'>('layout');
-  const [copiedType, setCopiedType] = useState<'audience' | 'operator' | 'room_code' | null>(null);
+  const [copiedType, setCopiedType] = useState<'audience' | 'audience_transparent' | 'operator' | 'room_code' | null>(null);
   const [showObsGuideModal, setShowObsGuideModal] = useState(false);
   const [newSlideUrl, setNewSlideUrl] = useState('');
   const [newSlideTitle, setNewSlideTitle] = useState('');
@@ -78,6 +78,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // URLs for Audience and Operator with room/session code
   const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
   const audienceUrl = `${baseUrl}?view=audience&code=${encodeURIComponent(roomCode)}`;
+  const audienceTransparentUrl = `${baseUrl}?view=audience&code=${encodeURIComponent(roomCode)}&transparent=true`;
   const operatorUrl = `${baseUrl}?view=operator&code=${encodeURIComponent(roomCode)}`;
 
   const handleApplyNewCode = () => {
@@ -101,7 +102,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     onChangeConfig({ ...config, ...fields });
   };
 
-  const copyToClipboard = (url: string, type: 'audience' | 'operator') => {
+  const copyToClipboard = (url: string, type: 'audience' | 'audience_transparent' | 'operator') => {
     navigator.clipboard.writeText(url);
     setCopiedType(type);
     setTimeout(() => setCopiedType(null), 2500);
@@ -249,7 +250,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
 
         {/* Header Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowObsGuideModal(true)}
             className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-2xs"
@@ -259,26 +260,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <span>Panduan OBS</span>
           </button>
 
+          {/* Transparent Overlay URL button for OBS */}
           <button
-            onClick={() => copyToClipboard(audienceUrl, 'audience')}
-            className={`flex items-center gap-1.5 border text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
-              copiedType === 'audience'
+            onClick={() => copyToClipboard(audienceTransparentUrl, 'audience_transparent')}
+            className={`flex items-center gap-1.5 border text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
+              copiedType === 'audience_transparent'
                 ? 'bg-emerald-600 text-white border-emerald-700'
-                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-amber-600'
             }`}
-            title="Salin URL OBS (?view=audience)"
+            title="Salin URL Overlay Transparan untuk Browser Source OBS (?view=audience&transparent=true)"
           >
-            {copiedType === 'audience' ? (
+            {copiedType === 'audience_transparent' ? (
               <Check className="w-4 h-4 text-white" />
             ) : (
-              <Copy className="w-4 h-4 text-amber-500" />
+              <Copy className="w-4 h-4 text-white" />
             )}
-            <span>{copiedType === 'audience' ? 'URL OBS Tersalin!' : 'Salin URL OBS (Audience)'}</span>
+            <span>{copiedType === 'audience_transparent' ? 'URL Transparan Tersalin!' : 'Salin URL OBS (Transparan)'}</span>
           </button>
 
           <button
             onClick={() => copyToClipboard(operatorUrl, 'operator')}
-            className={`flex items-center gap-1.5 border text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
+            className={`flex items-center gap-1.5 border text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-2xs ${
               copiedType === 'operator'
                 ? 'bg-emerald-600 text-white border-emerald-700'
                 : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
@@ -2623,13 +2625,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 flex flex-col gap-6 text-slate-800 text-xs leading-relaxed">
-              {/* Section 1: Comparison of 2 URLs with Session Key */}
+            <div className="p-6 flex flex-col gap-6 text-slate-800 text-xs leading-relaxed max-h-[75vh] overflow-y-auto">
+              {/* Important OBS Notice: Dev URL vs Public/Shared URL */}
+              <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-amber-900 font-extrabold text-xs uppercase">
+                  <span>⚠️ PENTING: Ketentuan URL untuk Browser Source OBS</span>
+                </div>
+                <p className="text-amber-950 text-[11px]">
+                  Jika aplikasi sedang dibuka di dalam <strong>Google AI Studio Dev Container</strong>, URL <code>ais-dev-...</code> memerlukan login akun Google Anda sehingga OBS Browser Source tidak bisa memuatnya (layar putih/login).
+                </p>
+                <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200 text-[11px] text-slate-800 flex flex-col gap-1">
+                  <strong>Gunakan salah satu dari 2 opsi berikut agar OBS langsung bekerja:</strong>
+                  <ul className="list-disc list-inside space-y-0.5 text-slate-700">
+                    <li>
+                      <strong>Opsi 1 (Paling Mudah):</strong> Gunakan link <strong>Shared App URL / Deploy</strong> (link berawalan <code>https://ais-pre-...</code> atau domain publik Anda yang tidak memerlukan login Google).
+                    </li>
+                    <li>
+                      <strong>Opsi 2 (Lokal):</strong> Jalankan project di laptop Anda (<code>npm run dev</code>) lalu masukkan <code>http://localhost:3000/?view=audience&code={roomCode}&transparent=true</code> ke OBS.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Section 1: Comparison of URLs with Session Key */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
                     <Globe className="w-4 h-4 text-amber-500" />
-                    1. Dua Jenis URL dengan Kunci Sesi ({roomCode})
+                    1. Pilihan URL Sesuai Kebutuhan Siaran ({roomCode})
                   </h4>
                   <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md flex items-center gap-1">
                     <Key className="w-3 h-3" />
@@ -2637,31 +2660,69 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Audience Card */}
-                  <div className="p-4 bg-amber-50/80 border-2 border-amber-300 rounded-2xl flex flex-col gap-2.5 shadow-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-[#093A6E] text-xs uppercase flex items-center gap-1.5">
-                        <Tv className="w-4 h-4 text-amber-600" />
-                        URL Audience (OBS Browser)
-                      </span>
-                      <span className="text-[10px] font-mono font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                        ?view=audience&code={roomCode}
-                      </span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Option A: Transparent Overlay (Recommended for OBS) */}
+                  <div className="p-3.5 bg-gradient-to-b from-amber-50 to-orange-50/60 border-2 border-amber-400 rounded-2xl flex flex-col justify-between gap-2.5 shadow-xs">
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="font-black text-[#093A6E] text-xs uppercase flex items-center gap-1">
+                          <Tv className="w-3.5 h-3.5 text-amber-600" />
+                          Overlay Transparan (OBS)
+                        </span>
+                        <span className="text-[9px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                          Rekomendasi
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-[11px]">
+                        Latar belakang <strong>100% transparan</strong>. Cocok ditaruh di atas layer Video Kamera Misa di OBS tanpa menutupi video.
+                      </p>
                     </div>
-                    <p className="text-slate-600 text-[11px]">
-                      Halaman overlay murni tanpa menu admin. Otomatis menyesuaikan resolusi 1080p / 4K tanpa terpotong.
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="text"
+                        readOnly
+                        value={audienceTransparentUrl}
+                        className="flex-1 bg-white border border-amber-300 rounded-lg px-2 py-1 text-[10px] font-mono text-slate-800 outline-none select-all truncate"
+                      />
+                      <button
+                        onClick={() => copyToClipboard(audienceTransparentUrl, 'audience_transparent')}
+                        className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer shrink-0 ${
+                          copiedType === 'audience_transparent'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                        }`}
+                      >
+                        {copiedType === 'audience_transparent' ? 'Tersalin!' : 'Salin'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Option B: Studio / Standalone Full Screen */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-2xl flex flex-col justify-between gap-2.5 shadow-xs">
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="font-extrabold text-slate-800 text-xs uppercase flex items-center gap-1">
+                          <Tv className="w-3.5 h-3.5 text-slate-600" />
+                          Layar Penuh Studio
+                        </span>
+                        <span className="text-[9px] font-bold bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded">
+                          Lengkap
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-[11px]">
+                        Menampilkan background grafis animasi, slide penuh, atau waiting screen untuk layar proyektor gereja.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
                       <input
                         type="text"
                         readOnly
                         value={audienceUrl}
-                        className="flex-1 bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all"
+                        className="flex-1 bg-white border border-slate-300 rounded-lg px-2 py-1 text-[10px] font-mono text-slate-800 outline-none select-all truncate"
                       />
                       <button
                         onClick={() => copyToClipboard(audienceUrl, 'audience')}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer shrink-0 ${
+                        className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer shrink-0 ${
                           copiedType === 'audience'
                             ? 'bg-emerald-600 text-white'
                             : 'bg-[#093A6E] hover:bg-blue-900 text-white'
@@ -2672,30 +2733,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Operator Card */}
-                  <div className="p-4 bg-blue-50/80 border-2 border-blue-300 rounded-2xl flex flex-col gap-2.5 shadow-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-[#093A6E] text-xs uppercase flex items-center gap-1.5">
-                        <Laptop className="w-4 h-4 text-blue-600" />
-                        URL Operator (Panel Admin)
-                      </span>
-                      <span className="text-[10px] font-mono font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded-full">
-                        ?view=operator&code={roomCode}
-                      </span>
+                  {/* Option C: Operator Card */}
+                  <div className="p-3.5 bg-blue-50/80 border border-blue-300 rounded-2xl flex flex-col justify-between gap-2.5 shadow-xs">
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="font-extrabold text-[#093A6E] text-xs uppercase flex items-center gap-1">
+                          <Laptop className="w-3.5 h-3.5 text-blue-600" />
+                          URL Operator
+                        </span>
+                        <span className="text-[9px] font-bold bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded">
+                          Admin
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-[11px]">
+                        Halaman kontrol kru di laptop/HP operator kedua untuk mengendalikan tahapan misa secara live.
+                      </p>
                     </div>
-                    <p className="text-slate-600 text-[11px]">
-                      Halaman kontrol kru di laptop/HP kedua untuk ganti nama, tata letak kamera, slide, dan running text.
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
+                    <div className="flex items-center gap-1 mt-1">
                       <input
                         type="text"
                         readOnly
                         value={operatorUrl}
-                        className="flex-1 bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-800 outline-none select-all"
+                        className="flex-1 bg-white border border-blue-300 rounded-lg px-2 py-1 text-[10px] font-mono text-slate-800 outline-none select-all truncate"
                       />
                       <button
                         onClick={() => copyToClipboard(operatorUrl, 'operator')}
-                        className={`px-3 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer shrink-0 ${
+                        className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer shrink-0 ${
                           copiedType === 'operator'
                             ? 'bg-emerald-600 text-white'
                             : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -2712,7 +2775,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="flex flex-col gap-3">
                 <h4 className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
                   <Info className="w-4 h-4 text-cyan-600" />
-                  2. Langkah-Langkah Memasang di OBS Studio
+                  2. Langkah Memasang di OBS Studio
                 </h4>
 
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3">
@@ -2721,9 +2784,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       1
                     </span>
                     <div>
-                      <strong className="text-slate-900">Tambahkan Browser Source:</strong>
+                      <strong className="text-slate-900">Tambahkan Browser Source di OBS:</strong>
                       <p className="text-slate-600 text-[11px]">
-                        Di OBS Studio, pada panel <strong>Sources</strong>, klik tanda plus (<strong>+</strong>) &gt; pilih <strong>Browser</strong>.
+                        Di panel <strong>Sources</strong> pada OBS Studio, klik tanda tambah (<strong>+</strong>) &gt; pilih <strong>Browser</strong>.
                       </p>
                     </div>
                   </div>
@@ -2733,9 +2796,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       2
                     </span>
                     <div>
-                      <strong className="text-slate-900">Tempel URL Audience:</strong>
+                      <strong className="text-slate-900">Masukkan URL Overlay Transparan:</strong>
                       <p className="text-slate-600 text-[11px]">
-                        Pada kolom <strong>URL</strong>, tempel link Audience: <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">{audienceUrl}</code>
+                        Tempel URL Transparan ke kolom <strong>URL</strong> di jendela properti OBS: <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">{audienceTransparentUrl}</code>
                       </p>
                     </div>
                   </div>
@@ -2745,7 +2808,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       3
                     </span>
                     <div>
-                      <strong className="text-slate-900">Atur Resolusi & FPS:</strong>
+                      <strong className="text-slate-900">Atur Ukuran Canvas Resolusi:</strong>
                       <div className="grid grid-cols-3 gap-2 mt-1.5">
                         <div className="bg-white p-2 rounded-lg border border-slate-200 text-center">
                           <span className="text-[10px] text-slate-500 block">Width (Lebar)</span>
@@ -2768,11 +2831,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       4
                     </span>
                     <div>
-                      <strong className="text-slate-900">Centang Opsi Hemat & Performa:</strong>
-                      <ul className="list-disc list-inside text-[11px] text-slate-600 mt-1 space-y-0.5">
-                        <li>Centang <strong>"Shutdown source when not visible"</strong></li>
-                        <li>Centang <strong>"Refresh browser when scene becomes active"</strong></li>
-                      </ul>
+                      <strong className="text-slate-900">Custom CSS (Bila Diperlukan):</strong>
+                      <p className="text-slate-600 text-[11px]">
+                        Pastikan kolom Custom CSS di OBS bernilai: <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-900 font-mono text-[10px]">body &#123; background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; &#125;</code> (bawaan default OBS).
+                      </p>
                     </div>
                   </div>
 
@@ -2781,9 +2843,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       ✓
                     </span>
                     <div>
-                      <strong className="text-emerald-900">Selesai! Real-Time Synchronization Siap:</strong>
+                      <strong className="text-emerald-900">Siap Digunakan & Real-Time Terhubung!</strong>
                       <p className="text-slate-600 text-[11px]">
-                        Buka panel operator di laptop/HP Anda. Setiap tombol yang Anda klik akan langsung mengupdate tampilan di OBS secara instan tanpa perlu refresh!
+                        Kini setiap tombol yang Anda klik di panel operator (ganti urutan misa, ubah nama romo, aktifkan ticker) akan langsung tampil di siaran OBS secara live!
                       </p>
                     </div>
                   </div>
@@ -2795,11 +2857,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between rounded-b-3xl">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => copyToClipboard(audienceUrl, 'audience')}
+                  onClick={() => copyToClipboard(audienceTransparentUrl, 'audience_transparent')}
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs shadow-xs"
                 >
                   <Copy className="w-3.5 h-3.5" />
-                  <span>Salin URL OBS</span>
+                  <span>Salin URL OBS Transparan</span>
                 </button>
                 <button
                   onClick={onOpenAudienceWindow}

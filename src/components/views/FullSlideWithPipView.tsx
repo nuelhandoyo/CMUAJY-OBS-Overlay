@@ -51,9 +51,13 @@ export const FullSlideWithPipView: React.FC<FullSlideWithPipViewProps> = ({
         >
           <CameraBox
             cameraMode={config.cameraMode}
+            deviceId={config.camera1DeviceId}
+            isMirrored={config.camera1Mirrored}
+            isActive={config.camera1Active !== false}
             chromaColor={config.chromaColor}
             showFrame={false}
             shape={config.layoutShape}
+            label={config.camera1Label || 'KAMERA 1'}
             className="w-full h-full"
           />
         </motion.div>

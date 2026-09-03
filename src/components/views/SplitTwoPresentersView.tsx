@@ -36,10 +36,13 @@ export const SplitTwoPresentersView: React.FC<SplitTwoPresentersViewProps> = ({ 
         >
           <CameraBox
             cameraMode={config.cameraMode}
+            deviceId={config.camera1DeviceId}
+            isMirrored={config.camera1Mirrored}
+            isActive={config.camera1Active !== false}
             chromaColor={config.chromaColor}
             showFrame={false}
             shape={config.layoutShape}
-            label="PEMBICARA 1 / HOST"
+            label={config.camera1Label || 'KAMERA 1 (UTAMA)'}
             className="w-full h-full"
           />
         </motion.div>
@@ -54,10 +57,13 @@ export const SplitTwoPresentersView: React.FC<SplitTwoPresentersViewProps> = ({ 
         >
           <CameraBox
             cameraMode={config.cameraMode}
+            deviceId={config.camera2DeviceId}
+            isMirrored={config.camera2Mirrored}
+            isActive={config.camera2Active !== false}
             chromaColor={config.chromaColor}
             showFrame={false}
             shape={config.layoutShape}
-            label="PEMBICARA 2 / MODERATOR"
+            label={config.camera2Label || 'KAMERA 2 (KEDUA)'}
             className="w-full h-full"
           />
         </motion.div>

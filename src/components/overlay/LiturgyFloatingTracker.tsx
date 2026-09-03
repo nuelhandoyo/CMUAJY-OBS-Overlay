@@ -7,15 +7,11 @@ interface LiturgyFloatingTrackerProps {
 }
 
 export const LiturgyFloatingTracker: React.FC<LiturgyFloatingTrackerProps> = ({ config }) => {
-  if (!config.showLiturgyTracker || config.layoutMode === 'waiting') {
-    return null;
-  }
-
   const items = config.liturgyItems || [];
-  if (items.length === 0) return null;
+  const isVisible = Boolean(config.showLiturgyTracker && config.layoutMode !== 'waiting' && items.length > 0);
 
-  const currentIndex = Math.max(0, Math.min(config.activeLiturgyIndex || 0, items.length - 1));
-  const currentStep: LiturgyStep = items[currentIndex] || items[0];
+  const currentIndex = Math.max(0, Math.min(config.activeLiturgyIndex || 0, items.length > 0 ? items.length - 1 : 0));
+  const currentStep: LiturgyStep = items[currentIndex] || { id: 'default', category: '', title: '' };
 
   const theme = config.themePreset || 'cream';
   const isFrosted = theme === 'frosted_light';
@@ -72,40 +68,42 @@ export const LiturgyFloatingTracker: React.FC<LiturgyFloatingTrackerProps> = ({ 
       className="absolute bottom-3 sm:bottom-5 md:bottom-6 inset-x-3 sm:inset-x-6 md:inset-x-10 z-40 pointer-events-none flex justify-center"
     >
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`${currentIndex}-${config.liturgyAnimationKey || 1}`}
-          initial={{ opacity: 0, y: 24, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.97 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className={`w-full rounded-[4px] px-5 sm:px-8 md:px-10 py-3.5 sm:py-5 md:py-6 flex items-center justify-between gap-4 sm:gap-8 ${themeStyle.cardBg} ${themeStyle.borderColor}`}
-          style={{
-            borderRadius: '4px',
-            WebkitMaskImage: '-webkit-radial-gradient(white, black)',
-          }}
-        >
-          {/* Left / Main: Procession / Activity Title */}
-          <div className="flex-1 min-w-0 flex items-center gap-3.5 sm:gap-5 md:gap-6">
-            <div className={`w-2 sm:w-2.5 md:w-3.5 h-8 sm:h-11 md:h-14 rounded-[2px] shrink-0 ${themeStyle.accentBar}`} />
-            <h3
-              className={`text-base sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase truncate leading-tight drop-shadow-sm ${themeStyle.titleText}`}
-            >
-              {currentStep.title}
-            </h3>
-          </div>
-
-          {/* Right: Congregation Posture / Position Badge Only */}
-          {currentStep.posture && (
-            <div
-              className={`shrink-0 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-3.5 rounded-[4px] text-sm sm:text-lg md:text-2xl font-black uppercase tracking-wider flex items-center gap-2 sm:gap-3 border ${themeStyle.postureBadge}`}
-            >
-              <span className="text-base sm:text-2xl md:text-3xl leading-none">
-                {getPostureIcon(currentStep.posture)}
-              </span>
-              <span className="whitespace-nowrap font-black">{currentStep.posture}</span>
+        {isVisible && (
+          <motion.div
+            key={`liturgy-${currentIndex}-${config.liturgyAnimationKey || 1}-${currentStep.title}`}
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className={`w-full rounded-[4px] px-5 sm:px-8 md:px-10 py-3.5 sm:py-5 md:py-6 flex items-center justify-between gap-4 sm:gap-8 ${themeStyle.cardBg} ${themeStyle.borderColor}`}
+            style={{
+              borderRadius: '4px',
+              WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+            }}
+          >
+            {/* Left / Main: Procession / Activity Title */}
+            <div className="flex-1 min-w-0 flex items-center gap-3.5 sm:gap-5 md:gap-6">
+              <div className={`w-2 sm:w-2.5 md:w-3.5 h-8 sm:h-11 md:h-14 rounded-[2px] shrink-0 ${themeStyle.accentBar}`} />
+              <h3
+                className={`text-base sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase truncate leading-tight drop-shadow-sm ${themeStyle.titleText}`}
+              >
+                {currentStep.title}
+              </h3>
             </div>
-          )}
-        </motion.div>
+
+            {/* Right: Congregation Posture / Position Badge Only */}
+            {currentStep.posture && (
+              <div
+                className={`shrink-0 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-3.5 rounded-[4px] text-sm sm:text-lg md:text-2xl font-black uppercase tracking-wider flex items-center gap-2 sm:gap-3 border ${themeStyle.postureBadge}`}
+              >
+                <span className="text-base sm:text-2xl md:text-3xl leading-none">
+                  {getPostureIcon(currentStep.posture)}
+                </span>
+                <span className="whitespace-nowrap font-black">{currentStep.posture}</span>
+              </div>
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

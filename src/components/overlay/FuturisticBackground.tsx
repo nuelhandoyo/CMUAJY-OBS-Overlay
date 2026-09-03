@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface FuturisticBackgroundProps {
   backgroundUrl?: string;
@@ -14,11 +15,18 @@ export const FuturisticBackground: React.FC<FuturisticBackgroundProps> = ({ back
       {/* Background Image / Animated GIF Layer */}
       {bgUrl ? (
         <>
-          <img
-            src={bgUrl}
-            alt="Live Overlay Background"
-            className="w-full h-full object-cover absolute inset-0 transition-opacity duration-500"
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={bgUrl}
+              src={bgUrl}
+              alt="Live Overlay Background"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+              className="w-full h-full object-cover absolute inset-0"
+            />
+          </AnimatePresence>
           {/* Subtle dark tint gradient for visual contrast on overlays */}
           <div className="absolute inset-0 bg-black/20 pointer-events-none" />
         </>

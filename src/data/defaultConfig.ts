@@ -33,7 +33,8 @@ export const DEFAULT_SLIDES = [
 ];
 
 export const defaultConfig: OverlayConfig = {
-  layoutMode: 'presenter_slide',
+  configVersion: 2,
+  layoutMode: 'full_presenter_noborder',
 
   speaker: {
     id: 'spk-1',
@@ -52,9 +53,22 @@ export const defaultConfig: OverlayConfig = {
   },
 
   cameraMode: 'chroma_green',
+  cameraSourceType: 'chroma_green',
   chromaColor: '#00FF00',
-  showCameraFrame: true,
+  showCameraFrame: false,
   frameBorderColor: '#093A6E',
+
+  camera1DeviceId: '',
+  camera1Label: 'Kamera 1 (Utama)',
+  camera1Mirrored: false,
+  camera1Active: false,
+
+  camera2DeviceId: '',
+  camera2Label: 'Kamera 2 (Kedua)',
+  camera2Mirrored: false,
+  camera2Active: false,
+
+  primaryActiveCamera: 'camera1',
 
   slideSourceType: 'canva_embed',
   canvaUrl: 'https://www.canva.com/design/DAGfsK7x68U/view?embed',
@@ -64,9 +78,10 @@ export const defaultConfig: OverlayConfig = {
   autoAdvanceSlides: false,
   autoAdvanceIntervalSeconds: 10,
 
-  showLowerThird: true,
+  showLowerThird: false,
   lowerThirdStyle: 'classic_signature',
-  lowerThirdPosition: 'bottom_left',
+  lowerThirdPosition: 'bottom_center',
+  lowerThirdScale: 1.0,
   lowerThirdShape: 'sharp',
   lowerThirdColor: 'navy',
   lowerThirdFont: 'sans',
@@ -81,7 +96,7 @@ export const defaultConfig: OverlayConfig = {
   logoSize: 'medium',
   logoOpacity: 1.0,
 
-  showTicker: true,
+  showTicker: false,
   tickerText: 'Selamat datang dalam Perayaan Ekaristi & Live Streaming Campus Ministry Universitas Atma Jaya Yogyakarta • Misa Kampus (Miskam): Setiap Hari Rabu pkl 12:00 WIB di Kapel Kampus • Misa Jumat Pertama: Pkl 12:00 WIB • "Faith is taking the first step even when you cannot see the whole staircase" • Konseling Pastoral & Layanan Spiritualitas: campusministry@uajy.ac.id',
   tickerSpeed: 25,
   tickerBadgeTitle: 'LITURGI & INFORMASI',
@@ -115,7 +130,7 @@ export const defaultConfig: OverlayConfig = {
   waitingFontFamily: 'sans',
 
   // Liturgy Mass Rundown Tracker
-  showLiturgyTracker: true,
+  showLiturgyTracker: false,
   activeLiturgyIndex: 0,
   liturgyTrackerPosition: 'top_right',
   liturgyTrackerStyle: 'modern_glass',

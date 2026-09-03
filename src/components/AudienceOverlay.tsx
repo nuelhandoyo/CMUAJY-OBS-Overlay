@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { OverlayConfig } from '../types';
 import { LowerThird } from './overlay/LowerThird';
 import { TickerBar } from './overlay/TickerBar';
@@ -96,99 +97,119 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
         {!isTransparent && <FuturisticBackground backgroundUrl={config.backgroundUrl} />}
 
         {/* Top Logo Watermark Overlay */}
-        {config.showLogos && config.layoutMode !== 'waiting' && (
-          <div className="absolute top-5 left-8 right-8 z-30 pointer-events-none flex items-center justify-between">
-            {(config.logoPosition === 'top_left' || config.logoPosition === 'both_corners') &&
-              config.activeLogoUrl && (
-                <div
-                  className={`transition-all duration-300 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] ${logoSizeClass}`}
-                  style={{ opacity }}
-                >
-                  {config.activeLogoUrl.startsWith('<svg') ? (
-                    <div
-                      className="w-full h-full flex items-center"
-                      dangerouslySetInnerHTML={{ __html: config.activeLogoUrl }}
-                    />
-                  ) : (
-                    <img
-                      src={config.activeLogoUrl}
-                      alt="Logo 1"
-                      className="h-full w-auto object-contain"
-                    />
-                  )}
-                </div>
-              )}
+        <AnimatePresence>
+          {config.showLogos && config.layoutMode !== 'waiting' && (
+            <motion.div
+              key="top-logos"
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="absolute top-5 left-8 right-8 z-30 pointer-events-none flex items-center justify-between"
+            >
+              {(config.logoPosition === 'top_left' || config.logoPosition === 'both_corners') &&
+                config.activeLogoUrl && (
+                  <div
+                    className={`transition-all duration-300 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] ${logoSizeClass}`}
+                    style={{ opacity }}
+                  >
+                    {config.activeLogoUrl.startsWith('<svg') ? (
+                      <div
+                        className="w-full h-full flex items-center"
+                        dangerouslySetInnerHTML={{ __html: config.activeLogoUrl }}
+                      />
+                    ) : (
+                      <img
+                        src={config.activeLogoUrl}
+                        alt="Logo 1"
+                        className="h-full w-auto object-contain"
+                      />
+                    )}
+                  </div>
+                )}
 
-            <div className="flex-1" />
+              <div className="flex-1" />
 
-            {(config.logoPosition === 'top_right' || config.logoPosition === 'both_corners') &&
-              config.secondLogoUrl && (
-                <div
-                  className={`transition-all duration-300 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] ${logoSizeClass}`}
-                  style={{ opacity }}
-                >
-                  {config.secondLogoUrl.startsWith('<svg') ? (
-                    <div
-                      className="w-full h-full flex items-center"
-                      dangerouslySetInnerHTML={{ __html: config.secondLogoUrl }}
-                    />
-                  ) : (
-                    <img
-                      src={config.secondLogoUrl}
-                      alt="Logo 2"
-                      className="h-full w-auto object-contain"
-                    />
-                  )}
-                </div>
-              )}
-          </div>
-        )}
+              {(config.logoPosition === 'top_right' || config.logoPosition === 'both_corners') &&
+                config.secondLogoUrl && (
+                  <div
+                    className={`transition-all duration-300 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] ${logoSizeClass}`}
+                    style={{ opacity }}
+                  >
+                    {config.secondLogoUrl.startsWith('<svg') ? (
+                      <div
+                        className="w-full h-full flex items-center"
+                        dangerouslySetInnerHTML={{ __html: config.secondLogoUrl }}
+                      />
+                    ) : (
+                      <img
+                        src={config.secondLogoUrl}
+                        alt="Logo 2"
+                        className="h-full w-auto object-contain"
+                      />
+                    )}
+                  </div>
+                )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Selected Layout View Layer */}
         <div className="w-full flex-1 min-h-0 relative overflow-hidden z-10">
-          {config.layoutMode === 'presenter_slide' && (
-            <PresenterWithSlideView
-              config={config}
-              onNextSlide={onNextSlide}
-              onPrevSlide={onPrevSlide}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={config.layoutMode}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="w-full h-full relative"
+            >
+              {config.layoutMode === 'presenter_slide' && (
+                <PresenterWithSlideView
+                  config={config}
+                  onNextSlide={onNextSlide}
+                  onPrevSlide={onPrevSlide}
+                />
+              )}
 
-          {config.layoutMode === 'slide_two_presenters' && (
-            <SlideWithTwoPresentersView
-              config={config}
-              onNextSlide={onNextSlide}
-              onPrevSlide={onPrevSlide}
-            />
-          )}
+              {config.layoutMode === 'slide_two_presenters' && (
+                <SlideWithTwoPresentersView
+                  config={config}
+                  onNextSlide={onNextSlide}
+                  onPrevSlide={onPrevSlide}
+                />
+              )}
 
-          {config.layoutMode === 'full_slide_pip' && (
-            <FullSlideWithPipView
-              config={config}
-              onNextSlide={onNextSlide}
-              onPrevSlide={onPrevSlide}
-            />
-          )}
+              {config.layoutMode === 'full_slide_pip' && (
+                <FullSlideWithPipView
+                  config={config}
+                  onNextSlide={onNextSlide}
+                  onPrevSlide={onPrevSlide}
+                />
+              )}
 
-          {config.layoutMode === 'full_slide_only' && (
-            <FullSlideOnlyView
-              config={config}
-              onNextSlide={onNextSlide}
-              onPrevSlide={onPrevSlide}
-            />
-          )}
+              {config.layoutMode === 'full_slide_only' && (
+                <FullSlideOnlyView
+                  config={config}
+                  onNextSlide={onNextSlide}
+                  onPrevSlide={onPrevSlide}
+                />
+              )}
 
-          {(config.layoutMode === 'full_presenter' || config.layoutMode === 'full_presenter_noborder') && (
-            <FullPresenterCameraView config={config} />
-          )}
+              {(config.layoutMode === 'full_presenter' || config.layoutMode === 'full_presenter_noborder') && (
+                <FullPresenterCameraView config={config} />
+              )}
 
-          {config.layoutMode === 'split_two' && (
-            <SplitTwoPresentersView config={config} />
-          )}
+              {config.layoutMode === 'split_two' && (
+                <SplitTwoPresentersView config={config} />
+              )}
 
-          {config.layoutMode === 'waiting' && (
-            <WaitingScreenView config={config} />
-          )}
+              {config.layoutMode === 'waiting' && (
+                <WaitingScreenView config={config} />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Lower Third Layer (Inside main stage, above ticker) */}
           <LowerThird config={config} />

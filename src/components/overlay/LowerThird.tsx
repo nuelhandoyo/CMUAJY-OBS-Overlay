@@ -173,8 +173,9 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
   positionClass,
 }) => {
   const isWaitingLayout = config.layoutMode === 'waiting';
-  // Automatically deactivate Name Tag (Lower Third) when Liturgy Floating Rundown Tracker is active
-  const isVisible = config.showLowerThird && !isWaitingLayout && !config.showLiturgyTracker;
+  const isTopPosition = config.lowerThirdPosition === 'top_left' || config.lowerThirdPosition === 'top_center';
+  // Automatically deactivate Name Tag (Lower Third) when Liturgy Floating Rundown Tracker is active in the same position
+  const isVisible = config.showLowerThird && !isWaitingLayout && (isTopPosition || !config.showLiturgyTracker);
 
   const currentSpeaker = speakerOverride || config.speaker;
   const style = config.lowerThirdStyle;
@@ -188,13 +189,47 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
 
   const isDockedMode = isMultiSpeakerLayout;
 
+  const isCentered =
+    config.lowerThirdPosition === 'bottom_center' || config.lowerThirdPosition === 'top_center';
+
+  const scale =
+    typeof config.lowerThirdScale === 'number' && config.lowerThirdScale > 0
+      ? config.lowerThirdScale
+      : 1.0;
+
   const getResolvedPositionClass = () => {
     if (positionClass) return positionClass;
-    if (config.lowerThirdPosition === 'top_left') {
-      return 'top-4 left-4 md:top-6 md:left-6';
+    switch (config.lowerThirdPosition) {
+      case 'bottom_center':
+        return 'bottom-5 sm:bottom-7 md:bottom-9 left-1/2 -translate-x-1/2';
+      case 'bottom_left_inset':
+        return 'bottom-5 sm:bottom-7 md:bottom-9 left-6 sm:left-12 md:left-20 lg:left-28';
+      case 'bottom_left':
+        return 'bottom-4 left-4 md:bottom-6 md:left-6';
+      case 'top_center':
+        return 'top-4 sm:top-6 md:top-8 left-1/2 -translate-x-1/2';
+      case 'top_left':
+        return 'top-4 left-4 md:top-6 md:left-6';
+      default:
+        // Default: Center-bottom
+        return 'bottom-5 sm:bottom-7 md:bottom-9 left-1/2 -translate-x-1/2';
     }
-    // Default: Pojok Kiri Bawah
-    return 'bottom-4 left-4 md:bottom-6 md:left-6';
+  };
+
+  const getTransformOrigin = () => {
+    if (isDockedMode) return 'bottom center';
+    switch (config.lowerThirdPosition) {
+      case 'bottom_center':
+        return 'bottom center';
+      case 'top_center':
+        return 'top center';
+      case 'top_left':
+        return 'top left';
+      case 'bottom_left_inset':
+      case 'bottom_left':
+      default:
+        return 'bottom left';
+    }
   };
 
   const resolvedPositionClass = getResolvedPositionClass();
@@ -332,6 +367,10 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
+            style={{
+              transform: scale !== 1.0 ? `scale(${scale})` : undefined,
+              transformOrigin: 'bottom center',
+            }}
             className={`w-full ${dockedTheme.container} px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 shrink-0 z-20`}
           >
             {isMultiSpeakerLayout ? (
@@ -410,35 +449,69 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
             )}
           </motion.div>
         ) : (
-          /* FLOATING MODE (For Standard Single Presenter Views - Bottom Left Aligned) */
+          /* FLOATING MODE (For Standard Single Presenter Views - Center, Inset, or Corner) */
           <motion.div
-            key={`lt-${config.lowerThirdAnimationKey}-${currentSpeaker.name}`}
-            initial={{ opacity: 0, x: -60, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -60, scale: 0.95 }}
+            key={`lt-${config.lowerThirdAnimationKey}-${currentSpeaker.name}-${currentSpeaker.title}-${style}-${config.lowerThirdColor}-${config.themePreset}-${config.lowerThirdPosition}-${scale}`}
+            initial={{
+              opacity: 0,
+              y: isCentered ? 30 : 0,
+              x: isCentered ? 0 : -50,
+              scale: scale * 0.95,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              x: 0,
+              scale: scale,
+            }}
+            exit={{
+              opacity: 0,
+              y: isCentered ? 20 : 0,
+              x: isCentered ? 0 : -50,
+              scale: scale * 0.95,
+            }}
             transition={{ duration: 0.35, ease: 'easeInOut' }}
-            className={`absolute ${resolvedPositionClass} z-30 max-w-lg md:max-w-xl pointer-events-none flex flex-col items-start text-left ${fontClass}`}
+            style={{
+              transformOrigin: getTransformOrigin(),
+            }}
+            className={`absolute ${resolvedPositionClass} z-30 w-auto max-w-[92vw] sm:max-w-xl md:max-w-2xl pointer-events-none flex flex-col ${
+              isCentered ? 'items-center text-center' : 'items-start text-left'
+            } ${fontClass}`}
           >
             {(style === 'classic_signature' || style === 'uajy_signature') && (
-              <div className={`relative ${colorPalette.bg} ${colorPalette.borderLeft} p-4 md:p-5 px-6 ${shapeClass.container} shadow-2xl backdrop-blur-md overflow-hidden text-left flex flex-col gap-1`}>
+              <div
+                className={`relative ${colorPalette.bg} ${
+                  isCentered
+                    ? 'border-t-4 border-b-2 border-amber-400/90 px-6 sm:px-8 py-3.5 sm:py-4 items-center text-center'
+                    : `${colorPalette.borderLeft} p-4 md:p-5 px-6 items-start text-left`
+                } ${shapeClass.container} shadow-2xl backdrop-blur-md overflow-hidden flex flex-col gap-1.5`}
+              >
                 {/* Background glow */}
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+                <div
+                  className={`absolute ${
+                    isCentered ? 'left-1/2 -translate-x-1/2 -bottom-10' : '-right-8 -bottom-8'
+                  } w-36 h-36 bg-amber-400/10 rounded-full blur-2xl pointer-events-none`}
+                />
 
                 {/* Institution Tag inside the card */}
                 {currentSpeaker.institution && (
-                  <div className="self-start mb-0.5">
-                    <span className={`inline-block px-3 py-1 ${colorPalette.tagBg} ${shapeClass.tag} font-extrabold text-[10px] md:text-xs tracking-wider uppercase shadow-xs`}>
+                  <div className={`${isCentered ? 'self-center mx-auto' : 'self-start'} mb-0.5`}>
+                    <span
+                      className={`inline-block px-3 py-1 ${colorPalette.tagBg} ${shapeClass.tag} font-extrabold text-[10px] sm:text-xs tracking-wider uppercase shadow-xs`}
+                    >
                       {currentSpeaker.institution}
                     </span>
                   </div>
                 )}
 
-                <div>
-                  <h2 className={`text-xl md:text-2xl font-black tracking-tight leading-tight ${colorPalette.nameText}`}>
+                <div className={isCentered ? 'text-center' : 'text-left'}>
+                  <h2
+                    className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight ${colorPalette.nameText}`}
+                  >
                     {currentSpeaker.name || 'Nama / Judul Kegiatan'}
                   </h2>
                   {currentSpeaker.title && (
-                    <p className={`text-xs md:text-sm font-medium mt-0.5 ${colorPalette.titleText}`}>
+                    <p className={`text-xs sm:text-sm font-medium mt-0.5 ${colorPalette.titleText}`}>
                       {currentSpeaker.title}
                     </p>
                   )}
@@ -446,7 +519,11 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
 
                 {/* Topic line */}
                 {currentSpeaker.topic && (
-                  <div className="mt-1.5 pt-2 border-t border-white/15 flex items-center justify-start gap-2 text-xs opacity-90 font-medium">
+                  <div
+                    className={`mt-1 pt-1.5 border-t border-white/15 flex items-center ${
+                      isCentered ? 'justify-center text-center' : 'justify-start text-left'
+                    } gap-2 text-xs opacity-90 font-medium`}
+                  >
                     <span className="italic truncate">{currentSpeaker.topic}</span>
                   </div>
                 )}
@@ -454,22 +531,44 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
             )}
 
             {style === 'sleek_modern' && (
-              <div className={`${colorPalette.bg} ${colorPalette.borderLeft} p-4 md:p-5 ${shapeClass.container} shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col items-start text-left gap-1`}>
+              <div
+                className={`${colorPalette.bg} ${
+                  isCentered
+                    ? 'border-t-4 border-b-2 border-blue-500/80 px-6 sm:px-8 py-3.5 sm:py-4 items-center text-center'
+                    : `${colorPalette.borderLeft} p-4 md:p-5 items-start text-left`
+                } ${shapeClass.container} shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col gap-1.5`}
+              >
                 {currentSpeaker.institution && (
-                  <div className={`text-[10px] md:text-xs uppercase tracking-widest font-bold ${colorPalette.nameText}`}>
+                  <div
+                    className={`text-[10px] sm:text-xs uppercase tracking-widest font-bold ${
+                      colorPalette.nameText
+                    } ${isCentered ? 'text-center' : 'text-left'}`}
+                  >
                     {currentSpeaker.institution}
                   </div>
                 )}
-                <div className="text-xl md:text-2xl font-extrabold tracking-tight">
+                <div
+                  className={`text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight ${
+                    isCentered ? 'text-center' : 'text-left'
+                  }`}
+                >
                   {currentSpeaker.name || 'Nama / Judul Kegiatan'}
                 </div>
                 {currentSpeaker.title && (
-                  <div className={`text-xs md:text-sm font-medium ${colorPalette.titleText}`}>
+                  <div
+                    className={`text-xs sm:text-sm font-medium ${colorPalette.titleText} ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
                     {currentSpeaker.title}
                   </div>
                 )}
                 {currentSpeaker.topic && (
-                  <div className="text-xs opacity-80 mt-1 pt-1.5 border-t border-white/10 w-full text-left">
+                  <div
+                    className={`text-xs opacity-80 mt-1 pt-1.5 border-t border-white/10 w-full ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
                     Topik/Detail: <span className={`font-medium ${colorPalette.nameText}`}>{currentSpeaker.topic}</span>
                   </div>
                 )}
@@ -477,22 +576,44 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
             )}
 
             {style === 'minimal_gold' && (
-              <div className={`${colorPalette.bg} ${colorPalette.borderLeft} p-4 md:p-5 ${shapeClass.container} shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col items-start text-left gap-1`}>
+              <div
+                className={`${colorPalette.bg} ${
+                  isCentered
+                    ? 'border-t-4 border-b-2 border-amber-400/90 px-6 sm:px-8 py-3.5 sm:py-4 items-center text-center'
+                    : `${colorPalette.borderLeft} p-4 md:p-5 items-start text-left`
+                } ${shapeClass.container} shadow-2xl backdrop-blur-xl relative overflow-hidden flex flex-col gap-1.5`}
+              >
                 {currentSpeaker.institution && (
-                  <div className={`text-[10px] md:text-xs uppercase tracking-widest font-bold ${colorPalette.nameText}`}>
+                  <div
+                    className={`text-[10px] sm:text-xs uppercase tracking-widest font-bold ${
+                      colorPalette.nameText
+                    } ${isCentered ? 'text-center' : 'text-left'}`}
+                  >
                     {currentSpeaker.institution}
                   </div>
                 )}
-                <div className={`text-xl md:text-2xl font-black tracking-tight ${colorPalette.nameText}`}>
+                <div
+                  className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight ${colorPalette.nameText} ${
+                    isCentered ? 'text-center' : 'text-left'
+                  }`}
+                >
                   {currentSpeaker.name || 'Nama / Judul Kegiatan'}
                 </div>
                 {currentSpeaker.title && (
-                  <div className={`text-xs md:text-sm font-medium ${colorPalette.titleText}`}>
+                  <div
+                    className={`text-xs sm:text-sm font-medium ${colorPalette.titleText} ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
                     {currentSpeaker.title}
                   </div>
                 )}
                 {currentSpeaker.topic && (
-                  <div className="text-xs opacity-80 mt-1 pt-1.5 border-t border-stone-800 w-full text-left">
+                  <div
+                    className={`text-xs opacity-80 mt-1 pt-1.5 border-t border-stone-800 w-full ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
                     Topik: <span className={`font-medium ${colorPalette.nameText}`}>{currentSpeaker.topic}</span>
                   </div>
                 )}
@@ -500,20 +621,44 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
             )}
 
             {style === 'futuristic_glass' && (
-              <div className={`${colorPalette.bg} ${colorPalette.borderLeft} p-4 md:p-5 ${shapeClass.container} shadow-[0_0_25px_rgba(16,185,129,0.2)] backdrop-blur-xl flex flex-col items-start text-left`}>
+              <div
+                className={`${colorPalette.bg} ${
+                  isCentered
+                    ? 'border-t-4 border-b-2 border-emerald-400/80 px-6 sm:px-8 py-3.5 sm:py-4 items-center text-center'
+                    : `${colorPalette.borderLeft} p-4 md:p-5 items-start text-left`
+                } ${shapeClass.container} shadow-[0_0_25px_rgba(16,185,129,0.2)] backdrop-blur-xl flex flex-col gap-1.5`}
+              >
                 {currentSpeaker.institution && (
-                  <span className={`px-2.5 py-0.5 ${shapeClass.tag} ${colorPalette.tagBg} text-[10px] md:text-xs font-bold tracking-wider uppercase inline-block mb-1`}>
-                    {currentSpeaker.institution}
-                  </span>
+                  <div className={`${isCentered ? 'self-center mx-auto' : 'self-start'} mb-0.5`}>
+                    <span
+                      className={`px-2.5 py-0.5 ${shapeClass.tag} ${colorPalette.tagBg} text-[10px] sm:text-xs font-bold tracking-wider uppercase inline-block`}
+                    >
+                      {currentSpeaker.institution}
+                    </span>
+                  </div>
                 )}
-                <div className="text-xl md:text-2xl font-black tracking-tight">
+                <div
+                  className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight ${
+                    isCentered ? 'text-center' : 'text-left'
+                  }`}
+                >
                   {currentSpeaker.name || 'Nama / Judul Kegiatan'}
                 </div>
                 {currentSpeaker.title && (
-                  <div className={`text-xs md:text-sm font-medium mt-0.5 ${colorPalette.titleText}`}>{currentSpeaker.title}</div>
+                  <div
+                    className={`text-xs sm:text-sm font-medium mt-0.5 ${colorPalette.titleText} ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
+                    {currentSpeaker.title}
+                  </div>
                 )}
                 {currentSpeaker.topic && (
-                  <div className="text-xs opacity-90 mt-2 pt-1.5 border-t border-white/10 w-full text-left">
+                  <div
+                    className={`text-xs opacity-90 mt-1.5 pt-1.5 border-t border-white/10 w-full ${
+                      isCentered ? 'text-center' : 'text-left'
+                    }`}
+                  >
                     <span className={colorPalette.nameText}>{currentSpeaker.topic}</span>
                   </div>
                 )}

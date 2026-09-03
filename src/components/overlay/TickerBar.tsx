@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { OverlayConfig } from '../../types';
 import { Radio, Instagram, Youtube, Globe } from 'lucide-react';
 import { getFontFamilyClass } from '../../utils/fontColorUtils';
@@ -9,8 +9,6 @@ interface TickerBarProps {
 }
 
 export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
-  if (!config.showTicker) return null;
-
   const fontClass = getFontFamilyClass(config.tickerFontFamily || config.lowerThirdFont);
 
   const fontSizeClass =
@@ -36,18 +34,21 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
   const webColorClass = isFrosted ? 'text-blue-700 font-bold' : isLightBg ? 'text-[#093A6E] font-bold' : 'text-blue-200';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 30 }}
-      transition={{ duration: 0.4 }}
-      className={`w-full shrink-0 z-40 ${isFrosted ? 'backdrop-blur-xl border-t-2' : 'border-t-4'} shadow-2xl h-14 flex items-center overflow-hidden ${fontClass}`}
-      style={{
-        backgroundColor: bgColor,
-        color: textColor,
-        borderTopColor: isFrosted ? '#FFFFFF' : isLightBg ? '#093A6E' : '#FFF7E5',
-      }}
-    >
+    <AnimatePresence>
+      {config.showTicker && (
+        <motion.div
+          key="ticker-bar-element"
+          initial={{ opacity: 0, y: 35 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 35 }}
+          transition={{ duration: 0.35, ease: 'easeInOut' }}
+          className={`w-full shrink-0 z-40 ${isFrosted ? 'backdrop-blur-xl border-t-2' : 'border-t-4'} shadow-2xl h-14 flex items-center overflow-hidden ${fontClass}`}
+          style={{
+            backgroundColor: bgColor,
+            color: textColor,
+            borderTopColor: isFrosted ? '#FFFFFF' : isLightBg ? '#093A6E' : '#FFF7E5',
+          }}
+        >
       {/* Ticker Title Badge */}
       <div
         className="font-black px-6 h-full flex items-center gap-2.5 text-sm tracking-wider uppercase shrink-0 shadow-md z-10"
@@ -127,6 +128,8 @@ export const TickerBar: React.FC<TickerBarProps> = ({ config }) => {
           100% { transform: translateX(-50%); }
         }
       `}</style>
-    </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

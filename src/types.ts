@@ -1,6 +1,7 @@
 export type LayoutMode = 'presenter_slide' | 'slide_two_presenters' | 'full_presenter' | 'full_presenter_noborder' | 'split_two' | 'waiting' | 'full_slide_pip' | 'full_slide_only';
 
-export type CameraMode = 'chroma_green' | 'transparent';
+export type CameraMode = 'live_device' | 'chroma_green' | 'transparent';
+export type CameraSourceType = 'live_device' | 'chroma_green' | 'transparent';
 
 export type LowerThirdStyle = 'classic_signature' | 'sleek_modern' | 'minimal_gold' | 'futuristic_glass' | 'uajy_signature';
 
@@ -36,6 +37,8 @@ export interface SlideItem {
 }
 
 export interface OverlayConfig {
+  configVersion?: number;
+
   // Active Layout
   layoutMode: LayoutMode;
 
@@ -44,10 +47,26 @@ export interface OverlayConfig {
   speaker2?: Speaker; // For split screen
 
   // Camera Settings
+  cameraSourceType?: CameraSourceType; // 'live_device' | 'chroma_green' | 'transparent'
   cameraMode: CameraMode;
   chromaColor: string; // e.g. "#00FF00"
   showCameraFrame: boolean;
   frameBorderColor: string;
+
+  // Camera 1 (Primary / Host / Presenter 1)
+  camera1DeviceId?: string;
+  camera1Label?: string;
+  camera1Mirrored?: boolean;
+  camera1Active?: boolean;
+
+  // Camera 2 (Secondary / Guest / Presenter 2)
+  camera2DeviceId?: string;
+  camera2Label?: string;
+  camera2Mirrored?: boolean;
+  camera2Active?: boolean;
+
+  // Active camera selection for single camera layouts
+  primaryActiveCamera?: 'camera1' | 'camera2';
 
   // Slide Deck & Canva
   slideSourceType: 'canva_embed' | 'image_deck' | 'chroma_green';
@@ -62,7 +81,8 @@ export interface OverlayConfig {
   // Lower Third Control
   showLowerThird: boolean;
   lowerThirdStyle: LowerThirdStyle;
-  lowerThirdPosition?: 'bottom_left' | 'top_left';
+  lowerThirdPosition?: 'bottom_center' | 'bottom_left_inset' | 'bottom_left' | 'top_center' | 'top_left';
+  lowerThirdScale?: number; // scale multiplier e.g. 0.6 to 1.8 (default 1.0)
   lowerThirdShape?: LowerThirdShape;
   lowerThirdColor?: LowerThirdColor;
   lowerThirdFont?: LowerThirdFont;

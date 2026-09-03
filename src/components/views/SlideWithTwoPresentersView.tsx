@@ -50,10 +50,13 @@ export const SlideWithTwoPresentersView: React.FC<SlideWithTwoPresentersViewProp
           >
             <CameraBox
               cameraMode={config.cameraMode}
+              deviceId={config.camera1DeviceId}
+              isMirrored={config.camera1Mirrored}
+              isActive={config.camera1Active !== false}
               chromaColor={config.chromaColor}
               showFrame={false}
               shape={config.layoutShape}
-              label="PEMBICARA 1"
+              label={config.camera1Label || 'KAMERA 1'}
               className="w-full h-full"
             />
           </div>
@@ -65,10 +68,13 @@ export const SlideWithTwoPresentersView: React.FC<SlideWithTwoPresentersViewProp
           >
             <CameraBox
               cameraMode={config.cameraMode}
+              deviceId={config.camera2DeviceId}
+              isMirrored={config.camera2Mirrored}
+              isActive={config.camera2Active !== false}
               chromaColor={config.chromaColor}
               showFrame={false}
               shape={config.layoutShape}
-              label="PEMBICARA 2"
+              label={config.camera2Label || 'KAMERA 2'}
               className="w-full h-full"
             />
           </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { OverlayConfig } from '../types';
 import { AudienceOverlay } from './AudienceOverlay';
 import { LiturgyManager } from './admin/LiturgyManager';
+import { CameraManager } from './admin/CameraManager';
 import { getCanvaEmbedUrl } from '../utils/canva';
 import { UAJY_EMBLEM_SVG, UAJY_SECONDARY_SVG } from '../assets/uajyLogo';
 import {
@@ -464,6 +465,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
+              {/* Row 2: Quick Switch Kamera Utama & Mode */}
+              <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-200/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                    📹 Quick Kamera Aktif:
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#093A6E] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    {config.cameraMode === 'live_device' ? '🔴 LIVE KAMERA' : config.cameraMode === 'chroma_green' ? '💚 CHROMA GREEN' : '✨ TRANSPARAN'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => updateConfig({ primaryActiveCamera: 'camera1' })}
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      (config.primaryActiveCamera || 'camera1') === 'camera1'
+                        ? 'bg-[#093A6E] text-white border-[#093A6E] font-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>📹</span>
+                    <span className="truncate">{config.camera1Label || 'Kamera 1'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => updateConfig({ primaryActiveCamera: 'camera2' })}
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      config.primaryActiveCamera === 'camera2'
+                        ? 'bg-sky-700 text-white border-sky-700 font-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>📹</span>
+                    <span className="truncate">{config.camera2Label || 'Kamera 2'}</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Row 3: Quick Switch Tema Warna */}
               <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-200/80">
                 <div className="flex items-center justify-between">
@@ -591,6 +630,111 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {config.showLowerThird ? <Eye className="w-4 h-4 text-blue-600" /> : <EyeOff className="w-4 h-4" />}
                 <span>{config.showLowerThird ? 'Sembunyikan Name Tag' : 'Tampilkan Name Tag'}</span>
               </button>
+
+              {/* Quick Position & Scale Bar */}
+              <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-amber-500" />
+                    Posisi &amp; Skala Name Tag
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-[#093A6E] bg-white px-2 py-0.5 rounded border border-blue-200">
+                    Skala: {Math.round((config.lowerThirdScale || 1.0) * 100)}%
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    onClick={() => updateConfig({ lowerThirdPosition: 'bottom_center' })}
+                    title="Posisi Tengah Bawah (Rekomendasi Siaran)"
+                    className={`py-1 px-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer border ${
+                      (config.lowerThirdPosition || 'bottom_center') === 'bottom_center'
+                        ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] font-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    🎯 Tengah Bawah
+                  </button>
+                  <button
+                    onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left_inset' })}
+                    title="Kiri Agak ke Tengah (Inset)"
+                    className={`py-1 px-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer border ${
+                      config.lowerThirdPosition === 'bottom_left_inset'
+                        ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] font-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    📐 Agak Tengah
+                  </button>
+                  <button
+                    onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left' })}
+                    title="Pojok Kiri Bawah"
+                    className={`py-1 px-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer border ${
+                      config.lowerThirdPosition === 'bottom_left'
+                        ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] font-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    ↙️ Pojok Kiri
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 pt-1 border-t border-slate-200/70">
+                  <span className="text-[10px] font-bold text-slate-500 shrink-0">Ukuran:</span>
+                  <button
+                    onClick={() => {
+                      const cur = config.lowerThirdScale || 1.0;
+                      updateConfig({ lowerThirdScale: Math.max(0.6, parseFloat((cur - 0.1).toFixed(2))) });
+                    }}
+                    title="Perkecil Name Tag"
+                    className="w-7 h-6 bg-white hover:bg-slate-100 border border-slate-300 rounded font-black text-xs text-slate-700 flex items-center justify-center cursor-pointer transition-all"
+                  >
+                    -
+                  </button>
+                  <div className="flex-1 flex items-center gap-1">
+                    <button
+                      onClick={() => updateConfig({ lowerThirdScale: 0.8 })}
+                      className={`flex-1 py-0.5 text-[9px] font-bold rounded border cursor-pointer ${
+                        config.lowerThirdScale === 0.8
+                          ? 'bg-[#093A6E] text-white border-[#093A6E]'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Kecil 80%
+                    </button>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdScale: 1.0 })}
+                      className={`flex-1 py-0.5 text-[9px] font-bold rounded border cursor-pointer ${
+                        (config.lowerThirdScale || 1.0) === 1.0
+                          ? 'bg-[#093A6E] text-white border-[#093A6E]'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Normal
+                    </button>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdScale: 1.25 })}
+                      className={`flex-1 py-0.5 text-[9px] font-bold rounded border cursor-pointer ${
+                        config.lowerThirdScale === 1.25
+                          ? 'bg-[#093A6E] text-white border-[#093A6E]'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Besar 125%
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const cur = config.lowerThirdScale || 1.0;
+                      updateConfig({ lowerThirdScale: Math.min(1.8, parseFloat((cur + 0.1).toFixed(2))) });
+                    }}
+                    title="Perbesar Name Tag"
+                    className="w-7 h-6 bg-white hover:bg-slate-100 border border-slate-300 rounded font-black text-xs text-slate-700 flex items-center justify-center cursor-pointer transition-all"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
 
               {(config.layoutMode === 'presenter_slide' ||
                 config.layoutMode === 'full_slide_pip' ||
@@ -1020,7 +1164,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               }`}
             >
               <Video className="w-4 h-4 text-amber-400" />
-              <span>Frame & Chroma Green</span>
+              <span>Kamera & Video Input</span>
             </button>
 
             <button
@@ -1057,18 +1201,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1. Presenter + Slide */}
-                <button
+                {/* 1. Presenter + Slide (Slide + 1 Kamera) */}
+                <div
                   onClick={() => updateConfig({ layoutMode: 'presenter_slide' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
                     config.layoutMode === 'presenter_slide'
-                      ? 'border-[#093A6E] bg-blue-50 shadow-md ring-2 ring-blue-200'
+                      ? 'border-[#093A6E] bg-blue-50/80 shadow-md ring-2 ring-blue-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-[#093A6E]">
-                      📊 1 Pembicara + Slide
+                    <span className="font-extrabold text-sm text-[#093A6E] flex items-center gap-1.5">
+                      📊 Slide + 1 Kamera (Side-by-Side)
                     </span>
                     {config.layoutMode === 'presenter_slide' && (
                       <span className="text-[10px] bg-[#093A6E] text-amber-300 font-extrabold px-2 py-0.5 rounded-full">
@@ -1077,22 +1221,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     )}
                   </div>
                   <p className="text-xs text-slate-600">
-                    Layar slide presentasi utama di kiri dengan kotak kamera pembicara tinggi penuh di kanan.
+                    Layar slide presentasi utama di kiri (70%) dengan kotak Kamera 1 pembicara tinggi penuh di kanan (30%).
                   </p>
-                </button>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
+                    <span className="text-slate-500 font-medium">Input Kamera:</span>
+                    <span className="font-mono font-bold text-[#093A6E] bg-white px-2 py-0.5 rounded border border-slate-200">
+                      📹 {config.camera1Label || 'Kamera 1 (Utama)'}
+                    </span>
+                  </div>
+                </div>
 
-                {/* 1b. 2 Presenters + Slide */}
-                <button
+                {/* 1b. 2 Presenters + Slide (Slide + 2 Kamera) */}
+                <div
                   onClick={() => updateConfig({ layoutMode: 'slide_two_presenters' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
                     config.layoutMode === 'slide_two_presenters'
-                      ? 'border-sky-600 bg-sky-50 shadow-md ring-2 ring-sky-200'
+                      ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-sky-900">
-                      👥 2 Pembicara + Slide
+                    <span className="font-extrabold text-sm text-sky-900 flex items-center gap-1.5">
+                      👥 Slide + 2 Kamera (2 Angle)
                     </span>
                     {config.layoutMode === 'slide_two_presenters' && (
                       <span className="text-[10px] bg-sky-700 text-white font-extrabold px-2 py-0.5 rounded-full">
@@ -1101,21 +1251,155 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     )}
                   </div>
                   <p className="text-xs text-slate-600">
-                    Layar slide presentasi di kiri dengan dua kotak kamera pembicara tersusun vertikal di kanan. Name Tag ditampilkan sebagai Banner Docked di bawah layout.
+                    Layar slide presentasi di kiri dengan dua kotak kamera bertumpuk vertikal di kanan (Kamera 1 di atas, Kamera 2 di bawah).
                   </p>
-                </button>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
+                    <span className="text-slate-500 font-medium">Input Kamera:</span>
+                    <span className="font-mono font-bold text-sky-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      📹 Cam 1 (Atas) + Cam 2 (Bawah)
+                    </span>
+                  </div>
+                </div>
 
-                {/* 2. Full Slide + PIP Camera */}
-                <button
-                  onClick={() => updateConfig({ layoutMode: 'full_slide_pip' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.layoutMode === 'full_slide_pip'
-                      ? 'border-indigo-600 bg-indigo-50 shadow-md ring-2 ring-indigo-200'
+                {/* 2. Full Presenter Camera (1 Kamera Dengan Bingkai) */}
+                <div
+                  onClick={() => updateConfig({ layoutMode: 'full_presenter', showCameraFrame: true })}
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
+                    config.layoutMode === 'full_presenter'
+                      ? 'border-emerald-600 bg-emerald-50/80 shadow-md ring-2 ring-emerald-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-indigo-900">
+                    <span className="font-extrabold text-sm text-emerald-800 flex items-center gap-1.5">
+                      👤 1 Kamera Penuh (Dengan Frame)
+                    </span>
+                    {config.layoutMode === 'full_presenter' && (
+                      <span className="text-[10px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded-full">
+                        AKTIF
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Tampilan 1 orang presenter dengan bingkai border warna/garis di sekeliling layar dan Name Tag pembicara.
+                  </p>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-slate-500 font-medium">Pilih Kamera:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => updateConfig({ primaryActiveCamera: 'camera1' })}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
+                          (config.primaryActiveCamera || 'camera1') === 'camera1'
+                            ? 'bg-[#093A6E] text-white border-[#093A6E]'
+                            : 'bg-white text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        Cam 1
+                      </button>
+                      <button
+                        onClick={() => updateConfig({ primaryActiveCamera: 'camera2' })}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
+                          config.primaryActiveCamera === 'camera2'
+                            ? 'bg-sky-700 text-white border-sky-700'
+                            : 'bg-white text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        Cam 2
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2b. Full Screen Camera (1 Kamera Tanpa Border) */}
+                <div
+                  onClick={() => updateConfig({ layoutMode: 'full_presenter_noborder', showCameraFrame: false })}
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
+                    config.layoutMode === 'full_presenter_noborder'
+                      ? 'border-teal-600 bg-teal-50/80 shadow-md ring-2 ring-teal-200'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-sm text-teal-900 flex items-center gap-1.5">
+                      📹 1 Kamera Full Screen (Edge-to-Edge)
+                    </span>
+                    {config.layoutMode === 'full_presenter_noborder' && (
+                      <span className="text-[10px] bg-teal-700 text-white font-extrabold px-2 py-0.5 rounded-full">
+                        AKTIF
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Tampilan kamera penuh 100% layar tanpa margin, tanpa padding, dan tanpa garis border (borderless).
+                  </p>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-slate-500 font-medium">Pilih Kamera:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => updateConfig({ primaryActiveCamera: 'camera1' })}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
+                          (config.primaryActiveCamera || 'camera1') === 'camera1'
+                            ? 'bg-[#093A6E] text-white border-[#093A6E]'
+                            : 'bg-white text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        Cam 1
+                      </button>
+                      <button
+                        onClick={() => updateConfig({ primaryActiveCamera: 'camera2' })}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer ${
+                          config.primaryActiveCamera === 'camera2'
+                            ? 'bg-sky-700 text-white border-sky-700'
+                            : 'bg-white text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        Cam 2
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Split Screen 2 Speakers (2 Kamera Berdampingan) */}
+                <div
+                  onClick={() => updateConfig({ layoutMode: 'split_two' })}
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
+                    config.layoutMode === 'split_two'
+                      ? 'border-blue-600 bg-blue-50/80 shadow-md ring-2 ring-blue-200'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-sm text-blue-800 flex items-center gap-1.5">
+                      🎙️ 2 Kamera Split (50:50 Berdampingan)
+                    </span>
+                    {config.layoutMode === 'split_two' && (
+                      <span className="text-[10px] bg-blue-700 text-white font-extrabold px-2 py-0.5 rounded-full">
+                        AKTIF
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Dua kotak kamera berdampingan secara simetris (Kamera 1 di kiri & Kamera 2 di kanan).
+                  </p>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
+                    <span className="text-slate-500 font-medium">Input Kamera:</span>
+                    <span className="font-mono font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      📹 Cam 1 (Kiri) + Cam 2 (Kanan)
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Full Slide + PIP Camera */}
+                <div
+                  onClick={() => updateConfig({ layoutMode: 'full_slide_pip' })}
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
+                    config.layoutMode === 'full_slide_pip'
+                      ? 'border-indigo-600 bg-indigo-50/80 shadow-md ring-2 ring-indigo-200'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-sm text-indigo-900 flex items-center gap-1.5">
                       🖥️ Full Slide + PIP Kamera Kanan Bawah
                     </span>
                     {config.layoutMode === 'full_slide_pip' && (
@@ -1127,19 +1411,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <p className="text-xs text-slate-600">
                     Slide presentasi penuh memenuhi layar dengan kotak kamera presenter kecil di pojok kanan bawah.
                   </p>
-                </button>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
+                    <span className="text-slate-500 font-medium">Input PIP:</span>
+                    <span className="font-mono font-bold text-indigo-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      📹 {config.camera1Label || 'Kamera 1'}
+                    </span>
+                  </div>
+                </div>
 
-                {/* 3. Full Slide Only (Without Camera) */}
-                <button
+                {/* 5. Full Slide Only (Without Camera) */}
+                <div
                   onClick={() => updateConfig({ layoutMode: 'full_slide_only' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
                     config.layoutMode === 'full_slide_only'
-                      ? 'border-cyan-600 bg-cyan-50 shadow-md ring-2 ring-cyan-200'
+                      ? 'border-cyan-600 bg-cyan-50/80 shadow-md ring-2 ring-cyan-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-cyan-900">
+                    <span className="font-extrabold text-sm text-cyan-900 flex items-center gap-1.5">
                       📺 Full Slide Presentasi (Tanpa Kamera)
                     </span>
                     {config.layoutMode === 'full_slide_only' && (
@@ -1151,91 +1441,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <p className="text-xs text-slate-600">
                     Layar penuh slide presentasi (Canva / Gambar) tanpa tampilan kamera presenter.
                   </p>
-                </button>
+                </div>
 
-                {/* 2. Full Presenter Camera (With Border Frame) */}
-                <button
-                  onClick={() => updateConfig({ layoutMode: 'full_presenter', showCameraFrame: true })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.layoutMode === 'full_presenter'
-                      ? 'border-emerald-600 bg-emerald-50 shadow-md ring-2 ring-emerald-200'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-emerald-800">
-                      🎥 Full Kamera Presenter (Dengan Border)
-                    </span>
-                    {config.layoutMode === 'full_presenter' && (
-                      <span className="text-[10px] bg-emerald-700 text-white font-extrabold px-2 py-0.5 rounded-full">
-                        AKTIF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Tampilan 1 orang presenter dengan bingkai border warna/garis di sekeliling layar.
-                  </p>
-                </button>
-
-                {/* 2b. Full Screen Camera (Without Border) */}
-                <button
-                  onClick={() => updateConfig({ layoutMode: 'full_presenter_noborder', showCameraFrame: false })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.layoutMode === 'full_presenter_noborder'
-                      ? 'border-teal-600 bg-teal-50 shadow-md ring-2 ring-teal-200'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-teal-900">
-                      📹 Full Screen Kamera (Tanpa Border)
-                    </span>
-                    {config.layoutMode === 'full_presenter_noborder' && (
-                      <span className="text-[10px] bg-teal-700 text-white font-extrabold px-2 py-0.5 rounded-full">
-                        AKTIF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Tampilan kamera penuh 100% layar edge-to-edge tanpa margin, tanpa padding, dan tanpa garis border (borderless).
-                  </p>
-                </button>
-
-                {/* 3. Split Screen 2 Speakers */}
-                <button
-                  onClick={() => updateConfig({ layoutMode: 'split_two' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.layoutMode === 'split_two'
-                      ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-blue-800">
-                      🎙️ Split Screen 2 Pembicara
-                    </span>
-                    {config.layoutMode === 'split_two' && (
-                      <span className="text-[10px] bg-blue-700 text-white font-extrabold px-2 py-0.5 rounded-full">
-                        AKTIF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Dua kotak kamera berdampingan. Name Tag ditampilkan sebagai Banner Docked di bawah kotak kamera (tidak menutup wajah).
-                  </p>
-                </button>
-
-                {/* 4. Waiting Screen / Starting Soon */}
-                <button
+                {/* 6. Waiting Screen / Starting Soon */}
+                <div
                   onClick={() => updateConfig({ layoutMode: 'waiting' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
                     config.layoutMode === 'waiting'
-                      ? 'border-amber-600 bg-amber-50 shadow-md ring-2 ring-amber-200'
+                      ? 'border-amber-600 bg-amber-50/80 shadow-md ring-2 ring-amber-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-amber-800">
+                    <span className="font-extrabold text-sm text-amber-800 flex items-center gap-1.5">
                       ⏰ Layar Pembuka / Countdown
                     </span>
                     {config.layoutMode === 'waiting' && (
@@ -1247,7 +1465,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <p className="text-xs text-slate-600">
                     Hitung mundur pembuka acara, judul custom, dan nama narasumber.
                   </p>
-                </button>
+                </div>
               </div>
 
               {/* Lower Third Theme Style Selector & Customizations */}
@@ -1732,31 +1950,99 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
 
-                {/* Position selector */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                    Posisi Floating Name Tag
-                  </label>
-                  <div className="flex gap-2">
+                {/* Position & Scale selector */}
+                <div className="flex flex-col gap-3 pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 uppercase">
+                      Posisi Floating Name Tag
+                    </label>
+                    <span className="text-[11px] font-bold text-[#093A6E]">
+                      {(config.lowerThirdPosition || 'bottom_center') === 'bottom_center'
+                        ? '🎯 Tengah Bawah (Agak ke tengah)'
+                        : config.lowerThirdPosition === 'bottom_left_inset'
+                        ? '📐 Kiri Agak ke Tengah'
+                        : config.lowerThirdPosition === 'top_center'
+                        ? '⬆️ Tengah Atas'
+                        : config.lowerThirdPosition === 'top_left'
+                        ? '↖️ Pojok Kiri Atas'
+                        : '↙️ Pojok Kiri Bawah'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <button
-                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left' })}
-                      className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
-                        (config.lowerThirdPosition || 'bottom_left') === 'bottom_left'
-                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E]'
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_center' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
+                        (config.lowerThirdPosition || 'bottom_center') === 'bottom_center'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-1 ring-amber-400'
                           : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
                       }`}
                     >
-                      Pojok Kiri Bawah (Default)
+                      🎯 Tengah Bawah
+                    </button>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left_inset' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
+                        config.lowerThirdPosition === 'bottom_left_inset'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-1 ring-amber-400'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
+                      }`}
+                    >
+                      📐 Kiri Agak Tengah
+                    </button>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
+                        config.lowerThirdPosition === 'bottom_left'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-1 ring-amber-400'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
+                      }`}
+                    >
+                      ↙️ Pojok Kiri Bawah
+                    </button>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'top_center' })}
+                      className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
+                        config.lowerThirdPosition === 'top_center'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-1 ring-amber-400'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
+                      }`}
+                    >
+                      ⬆️ Tengah Atas
                     </button>
                     <button
                       onClick={() => updateConfig({ lowerThirdPosition: 'top_left' })}
-                      className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                      className={`px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer text-center ${
                         config.lowerThirdPosition === 'top_left'
-                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E]'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-sm ring-1 ring-amber-400'
                           : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
                       }`}
                     >
-                      Pojok Kiri Atas
+                      ↖️ Pojok Kiri Atas
+                    </button>
+                  </div>
+
+                  {/* Scale slider in layout tab */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <span className="text-xs font-bold text-slate-600 shrink-0">
+                      Skala Ukuran ({Math.round((config.lowerThirdScale || 1.0) * 100)}%):
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold">60%</span>
+                    <input
+                      type="range"
+                      min="0.6"
+                      max="1.6"
+                      step="0.05"
+                      value={config.lowerThirdScale || 1.0}
+                      onChange={(e) => updateConfig({ lowerThirdScale: parseFloat(e.target.value) })}
+                      className="flex-1 accent-[#093A6E] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">160%</span>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdScale: 1.0 })}
+                      className="text-xs font-bold text-blue-700 hover:underline shrink-0"
+                    >
+                      Reset (100%)
                     </button>
                   </div>
                 </div>
@@ -1882,6 +2168,174 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* POSISI LAYAR & PENGATUR SKALA / UKURAN NAME TAG */}
+              <div className="p-5 bg-gradient-to-br from-blue-50/70 to-amber-50/50 rounded-2xl border border-blue-200/80 flex flex-col gap-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#093A6E]" />
+                    <h3 className="text-xs font-black text-[#093A6E] uppercase tracking-wider">
+                      Posisi Layar &amp; Ukuran Skala Name Tag
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    Dapat diperbesar / diperkecil agar pas dengan ukuran layar
+                  </span>
+                </div>
+
+                {/* 1. Posisi Name Tag di Layar */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase">
+                      1. Pilihan Posisi Tampilan Name Tag
+                    </label>
+                    <span className="text-[11px] font-bold text-[#093A6E]">
+                      {(config.lowerThirdPosition || 'bottom_center') === 'bottom_center'
+                        ? '🎯 Tengah Bawah (Agak ke tengah layar)'
+                        : config.lowerThirdPosition === 'bottom_left_inset'
+                        ? '📐 Kiri Agak ke Tengah (Inset)'
+                        : config.lowerThirdPosition === 'top_center'
+                        ? '⬆️ Tengah Atas'
+                        : config.lowerThirdPosition === 'top_left'
+                        ? '↖️ Pojok Kiri Atas'
+                        : '↙️ Pojok Kiri Bawah'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_center' })}
+                      className={`p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        (config.lowerThirdPosition || 'bottom_center') === 'bottom_center'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-md ring-2 ring-amber-400'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-lg">🎯</span>
+                      <span className="text-xs font-black">Tengah Bawah</span>
+                      <span className="text-[10px] opacity-80 font-medium">(Rekomendasi)</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left_inset' })}
+                      className={`p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        config.lowerThirdPosition === 'bottom_left_inset'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-md ring-2 ring-amber-400'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-lg">📐</span>
+                      <span className="text-xs font-black">Kiri Agak Tengah</span>
+                      <span className="text-[10px] opacity-80 font-medium">(Margin Luas)</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'bottom_left' })}
+                      className={`p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        config.lowerThirdPosition === 'bottom_left'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-md ring-2 ring-amber-400'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-lg">↙️</span>
+                      <span className="text-xs font-black">Pojok Kiri Bawah</span>
+                      <span className="text-[10px] opacity-80 font-medium">(Klasik)</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'top_center' })}
+                      className={`p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        config.lowerThirdPosition === 'top_center'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-md ring-2 ring-amber-400'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-lg">⬆️</span>
+                      <span className="text-xs font-black">Tengah Atas</span>
+                      <span className="text-[10px] opacity-80 font-medium">(Header Bar)</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateConfig({ lowerThirdPosition: 'top_left' })}
+                      className={`p-3 rounded-xl border-2 text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        config.lowerThirdPosition === 'top_left'
+                          ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] shadow-md ring-2 ring-amber-400'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-lg">↖️</span>
+                      <span className="text-xs font-black">Pojok Kiri Atas</span>
+                      <span className="text-[10px] opacity-80 font-medium">(Sudut Atas)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Ukuran & Skala Name Tag */}
+                <div className="pt-3 border-t border-slate-200/80">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase flex items-center gap-2">
+                      <span>2. Skala Ukuran Name Tag</span>
+                      <span className="text-[11px] font-mono font-black text-[#093A6E] bg-white px-2.5 py-0.5 rounded-full border border-blue-200 shadow-2xs">
+                        {Math.round((config.lowerThirdScale || 1.0) * 100)}%
+                        {(config.lowerThirdScale || 1.0) === 1.0
+                          ? ' (Ukuran Standar)'
+                          : (config.lowerThirdScale || 1.0) < 1.0
+                          ? ' (Diperkecil)'
+                          : ' (Diperbesar)'}
+                      </span>
+                    </label>
+                    <button
+                      onClick={() => updateConfig({ lowerThirdScale: 1.0 })}
+                      className="text-xs text-blue-700 hover:text-blue-900 font-bold underline cursor-pointer"
+                    >
+                      Reset 100% (Default)
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-bold text-slate-500">60%</span>
+                    <input
+                      type="range"
+                      min="0.6"
+                      max="1.6"
+                      step="0.05"
+                      value={config.lowerThirdScale || 1.0}
+                      onChange={(e) => updateConfig({ lowerThirdScale: parseFloat(e.target.value) })}
+                      className="flex-1 accent-[#093A6E] cursor-pointer h-2 bg-slate-200 rounded-lg"
+                    />
+                    <span className="text-xs font-bold text-slate-500">160%</span>
+                  </div>
+
+                  {/* Preset Size Buttons */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <span className="text-xs font-bold text-slate-600 mr-1">Preset Cepat:</span>
+                    {[
+                      { label: 'Kecil (80%)', val: 0.8 },
+                      { label: 'Kompak (90%)', val: 0.9 },
+                      { label: 'Standar (100%)', val: 1.0 },
+                      { label: 'Sedang (115%)', val: 1.15 },
+                      { label: 'Besar (130%)', val: 1.3 },
+                      { label: 'Ekstra Besar (150%)', val: 1.5 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.val}
+                        onClick={() => updateConfig({ lowerThirdScale: preset.val })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          Math.abs((config.lowerThirdScale || 1.0) - preset.val) < 0.02
+                            ? 'bg-[#093A6E] text-amber-300 border-[#093A6E] font-extrabold shadow-2xs'
+                            : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 mt-2.5 italic">
+                    💡 Tips: Perbesar ukuran tag (120%–140%) untuk keterbacaan optimal di proyektor aula atau TV LED besar, atau perkecil (80%–90%) saat siaran agar kamera lebih leluasa.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1976,124 +2430,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* TAB 3: CHROMA GREEN & OBS FRAME */}
+          {/* TAB 3: CAMERA & VIDEO INPUT MANAGER */}
           {activeTab === 'camera' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col gap-6 shadow-sm">
-              <h2 className="text-lg font-black text-[#093A6E] flex items-center gap-2">
-                <Video className="w-5 h-5 text-amber-500" />
-                Pengaturan Chroma Green & Frame OBS
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Chroma Green Option */}
-                <button
-                  onClick={() => updateConfig({ cameraMode: 'chroma_green' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.cameraMode === 'chroma_green'
-                      ? 'border-emerald-600 bg-emerald-50 shadow-md ring-2 ring-emerald-200'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-emerald-800">
-                      💚 Chroma Green (#00FF00)
-                    </span>
-                    {config.cameraMode === 'chroma_green' && (
-                      <span className="text-[10px] bg-emerald-600 text-white font-extrabold px-2 py-0.5 rounded-full">
-                        AKTIF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Kotak capture berwarna hijau terang. Sangat cocok untuk ditimpa kamera via Chroma Key filter di OBS Studio.
-                  </p>
-                </button>
-
-                {/* Transparent Option */}
-                <button
-                  onClick={() => updateConfig({ cameraMode: 'transparent' })}
-                  className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2 transition-all cursor-pointer ${
-                    config.cameraMode === 'transparent'
-                      ? 'border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-200'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-purple-800">
-                      ✨ Transparan (OBS Layering)
-                    </span>
-                    {config.cameraMode === 'transparent' && (
-                      <span className="text-[10px] bg-purple-600 text-white font-extrabold px-2 py-0.5 rounded-full">
-                        AKTIF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Area berlubang transparan. Letakkan sumber Browser Source di atas sumber Video Kamera di OBS.
-                  </p>
-                </button>
-              </div>
-
-              {/* Frame Customization */}
-              <div className="pt-4 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-2">
-                    Warna Chroma Key Green
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={config.chromaColor}
-                      onChange={(e) => updateConfig({ chromaColor: e.target.value })}
-                      className="w-10 h-10 rounded-xl bg-white border border-slate-300 cursor-pointer shadow-xs"
-                    />
-                    <input
-                      type="text"
-                      value={config.chromaColor}
-                      onChange={(e) => updateConfig({ chromaColor: e.target.value })}
-                      className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-mono w-32"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase mb-2">
-                    Garis Bingkai Kamera (Border Frame) & Mode Screen
-                  </label>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => updateConfig({ showCameraFrame: !config.showCameraFrame })}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        config.showCameraFrame
-                          ? 'bg-[#093A6E] text-white border-[#093A6E]'
-                          : 'bg-slate-100 text-slate-600 border-slate-300'
-                      }`}
-                    >
-                      {config.showCameraFrame ? 'Bingkai Aktif' : 'Tanpa Bingkai'}
-                    </button>
-
-                    <button
-                      onClick={() => updateConfig({ layoutMode: 'full_presenter_noborder', showCameraFrame: false })}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                        config.layoutMode === 'full_presenter_noborder' && !config.showCameraFrame
-                          ? 'bg-teal-700 text-white border-teal-700 shadow-sm'
-                          : 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100'
-                      }`}
-                    >
-                      <span>📹 Set Mode: Full Screen (Tanpa Border)</span>
-                    </button>
-
-                    <input
-                      type="color"
-                      value={config.frameBorderColor}
-                      onChange={(e) => updateConfig({ frameBorderColor: e.target.value })}
-                      className="w-10 h-10 rounded-xl bg-white border border-slate-300 cursor-pointer shadow-xs"
-                      title="Warna Garis Bingkai Kamera"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CameraManager config={config} updateConfig={updateConfig} />
           )}
 
           {/* TAB 4: CANVA & SLIDE DECK MANAGER */}

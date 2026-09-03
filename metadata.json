@@ -1,7 +1,9 @@
 {
   "name": "Campus Ministry OBS Stream Overlay",
   "description": "System Overlay Stream Broadcast OBS dengan tampilan admin \u0026 audience realtime, mode presenter + slide, full presenter (chroma green #00FF00), dan animasi lower third.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

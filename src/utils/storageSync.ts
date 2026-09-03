@@ -57,8 +57,25 @@ export function setSessionCodeInUrl(code: string, viewMode: 'admin' | 'audience'
   }
 }
 
+export const DEFAULT_CONFIG_VERSION = 2;
+
 export function sanitizeConfig(parsed: any): OverlayConfig {
   const cfg = { ...defaultConfig, ...parsed };
+
+  // If parsed data is from an older version or unversioned, apply new requested defaults
+  if (!parsed?.configVersion || parsed.configVersion < DEFAULT_CONFIG_VERSION) {
+    cfg.configVersion = DEFAULT_CONFIG_VERSION;
+    cfg.layoutMode = 'full_presenter_noborder';
+    cfg.cameraMode = 'chroma_green';
+    cfg.cameraSourceType = 'chroma_green';
+    cfg.chromaColor = '#00FF00';
+    cfg.showCameraFrame = false;
+    cfg.camera1Active = false;
+    cfg.camera2Active = false;
+    cfg.showTicker = false;
+    cfg.showLowerThird = false;
+    cfg.showLiturgyTracker = false;
+  }
 
   // Ensure high-legibility defaults and safe layout states
   cfg.showLogos = false;

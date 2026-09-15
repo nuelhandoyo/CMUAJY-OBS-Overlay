@@ -189,7 +189,7 @@ export const AudienceOverlay: React.FC<AudienceOverlayProps> = ({
                 />
               )}
 
-              {config.layoutMode === 'full_slide_only' && (
+              {(config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder') && (
                 <FullSlideOnlyView
                   config={config}
                   onNextSlide={onNextSlide}

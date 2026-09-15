@@ -438,10 +438,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </button>
 
                   <button
-                    onClick={() => updateConfig({ layoutMode: 'full_slide_only' })}
-                    title="Slide Full Screen Only"
+                    onClick={() => updateConfig({ layoutMode: 'full_slide_only', showCameraFrame: false })}
+                    title="Slide Full Screen (Tanpa Border / Edge-to-Edge)"
                     className={`p-2 rounded-lg border text-center flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                      config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_pip'
+                      config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder'
                         ? 'bg-[#093A6E] text-white border-[#093A6E] shadow-sm font-extrabold ring-2 ring-amber-400'
                         : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 font-bold'
                     }`}
@@ -738,7 +738,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               {(config.layoutMode === 'presenter_slide' ||
                 config.layoutMode === 'full_slide_pip' ||
-                config.layoutMode === 'full_slide_only') && (
+                config.layoutMode === 'full_slide_only' ||
+                config.layoutMode === 'full_slide_noborder') && (
                 <p className="text-[11px] text-amber-800 font-bold bg-amber-50/80 p-2 rounded-xl border border-amber-200/80 col-span-2">
                   ⚡ Note: Name Tag otomatis disembunyikan saat mode Slide aktif.
                 </p>
@@ -1419,27 +1420,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
 
-                {/* 5. Full Slide Only (Without Camera) */}
+                {/* 5. Full Slide Only (Without Camera - Tanpa Border) */}
                 <div
-                  onClick={() => updateConfig({ layoutMode: 'full_slide_only' })}
+                  onClick={() => updateConfig({ layoutMode: 'full_slide_only', showCameraFrame: false })}
                   className={`p-4 rounded-2xl border-2 text-left flex flex-col gap-2.5 transition-all cursor-pointer ${
-                    config.layoutMode === 'full_slide_only'
+                    config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder'
                       ? 'border-cyan-600 bg-cyan-50/80 shadow-md ring-2 ring-cyan-200'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-extrabold text-sm text-cyan-900 flex items-center gap-1.5">
-                      📺 Full Slide Presentasi (Tanpa Kamera)
+                      📺 Slide Full Screen (Tanpa Border / Edge-to-Edge)
                     </span>
-                    {config.layoutMode === 'full_slide_only' && (
+                    {(config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder') && (
                       <span className="text-[10px] bg-cyan-700 text-white font-extrabold px-2 py-0.5 rounded-full">
                         AKTIF
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-slate-600">
-                    Layar penuh slide presentasi (Canva / Gambar) tanpa tampilan kamera presenter.
+                    Layar penuh slide presentasi (Canva / Gambar) 100% tanpa margin, tanpa padding, dan tanpa garis border bingkai (Edge-to-Edge murni untuk proyektor &amp; live streaming).
                   </p>
                 </div>
 
@@ -2520,6 +2521,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </button>
               </div>
 
+              {/* TAMPILAN FULL SLIDE TANPA BORDER & FIT CONTROL */}
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 rounded-2xl border-2 border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-black text-[#093A6E] uppercase tracking-wider flex items-center gap-2">
+                    <span>📺</span>
+                    Tampilan Full Slide Tanpa Border
+                  </span>
+                  <p className="text-xs text-slate-600">
+                    Status layout:{' '}
+                    {config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder' ? (
+                      <span className="text-emerald-700 font-extrabold">Aktif (100% Layar Penuh Edge-to-Edge Tanpa Border)</span>
+                    ) : (
+                      <span className="text-slate-500 font-medium">Bukan Full Slide (Layout aktif: {config.layoutMode})</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => updateConfig({ layoutMode: 'full_slide_only', showCameraFrame: false })}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-xs flex items-center gap-1.5 ${
+                      config.layoutMode === 'full_slide_only' || config.layoutMode === 'full_slide_noborder'
+                        ? 'bg-[#093A6E] text-white ring-2 ring-amber-400'
+                        : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-300'
+                    }`}
+                  >
+                    <span>📊 Aktifkan Slide Full (No Border)</span>
+                  </button>
+                </div>
+              </div>
+
               {/* CHROMA GREEN SLIDE SETTINGS FORM */}
               {config.slideSourceType === 'chroma_green' && (
                 <div className="p-5 bg-emerald-50/60 rounded-2xl border-2 border-emerald-200 flex flex-col gap-4">
@@ -2694,6 +2725,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </select>
                       </div>
                     )}
+                  </div>
+
+                  {/* Image Fit Mode Control */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-bold text-slate-700 block">
+                        Proporsi Tampilan Gambar Slide
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Atur apakah gambar ditampilkan utuh (contain) atau mengisi penuh layar (cover).
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slideImageFit: 'contain' })}
+                        className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all cursor-pointer ${
+                          (config.slideImageFit || 'contain') === 'contain'
+                            ? 'bg-[#093A6E] text-white shadow-xs ring-2 ring-blue-300'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        Pas Layar (Contain)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slideImageFit: 'cover' })}
+                        className={`px-3 py-1.5 text-xs rounded-xl font-bold transition-all cursor-pointer ${
+                          config.slideImageFit === 'cover'
+                            ? 'bg-[#093A6E] text-white shadow-xs ring-2 ring-blue-300'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        Isi Penuh Layar (Cover)
+                      </button>
+                    </div>
                   </div>
 
                   {/* Upload or Add Slide URL */}

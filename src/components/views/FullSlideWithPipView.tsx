@@ -14,32 +14,41 @@ interface FullSlideWithPipViewProps {
 export const FullSlideWithPipView: React.FC<FullSlideWithPipViewProps> = ({
   config,
 }) => {
-  const shapeClass = getLayoutShapeClass(config.layoutShape);
+  const isNoBorder = !config.showCameraFrame;
+  const shapeClass = isNoBorder ? 'rounded-none' : getLayoutShapeClass(config.layoutShape);
   const pipShapeClass = getLayoutInnerShapeClass(config.layoutShape);
-  const slideBorderStyle = getFrameBorderStyle(
-    config.showCameraFrame,
-    config.frameBorderColor,
-    config.frameBorderWidth,
-    config.layoutShape
-  );
+  const slideBorderStyle = isNoBorder
+    ? { borderRadius: '0px', borderWidth: '0px' }
+    : getFrameBorderStyle(
+        config.showCameraFrame,
+        config.frameBorderColor,
+        config.frameBorderWidth,
+        config.layoutShape
+      );
   const pipBorderStyle = getFrameBorderStyle(
-    config.showCameraFrame,
+    true,
     config.frameBorderColor,
     'normal',
     config.layoutShape
   );
 
   return (
-    <div className="w-full h-full relative p-6 flex items-center justify-center bg-transparent font-sans overflow-hidden">
+    <div className={`w-full h-full relative ${isNoBorder ? 'p-0' : 'p-6'} flex items-center justify-center bg-black font-sans overflow-hidden`}>
       {/* 16:9 Slide Canvas Container */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
+        initial={{ opacity: 0, scale: isNoBorder ? 1 : 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className={`aspect-video max-h-full max-w-full w-full bg-slate-950 ${shapeClass} relative shadow-2xl flex items-center justify-center`}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+        className={`${isNoBorder ? 'w-full h-full rounded-none border-0 shadow-none' : `aspect-video max-h-full max-w-full w-full ${shapeClass} shadow-2xl`} bg-slate-950 relative flex items-center justify-center`}
         style={slideBorderStyle}
       >
-        <SlideCanvas config={config} isAudienceView={true} imageFitMode="contain" className="w-full h-full" />
+        <SlideCanvas
+          config={config}
+          isAudienceView={true}
+          imageFitMode={config.slideImageFit || 'contain'}
+          className="w-full h-full rounded-none border-0"
+        />
 
         {/* PIP Presenter Camera Overlay in Bottom Right Corner */}
         <motion.div

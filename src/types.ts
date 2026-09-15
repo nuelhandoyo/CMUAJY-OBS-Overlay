@@ -1,4 +1,4 @@
-export type LayoutMode = 'presenter_slide' | 'slide_two_presenters' | 'full_presenter' | 'full_presenter_noborder' | 'split_two' | 'waiting' | 'full_slide_pip' | 'full_slide_only';
+export type LayoutMode = 'presenter_slide' | 'slide_two_presenters' | 'full_presenter' | 'full_presenter_noborder' | 'split_two' | 'waiting' | 'full_slide_pip' | 'full_slide_only' | 'full_slide_noborder';
 
 export type CameraMode = 'live_device' | 'chroma_green' | 'transparent';
 export type CameraSourceType = 'live_device' | 'chroma_green' | 'transparent';
@@ -71,6 +71,7 @@ export interface OverlayConfig {
   // Slide Deck & Canva
   slideSourceType: 'canva_embed' | 'image_deck' | 'chroma_green';
   slideChromaColor?: string;
+  slideImageFit?: 'contain' | 'cover';
   canvaUrl: string;
   slides: SlideItem[];
   activeSlideIndex: number;

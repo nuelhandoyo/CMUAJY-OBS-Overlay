@@ -23,6 +23,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
   const canvaEmbedSrc = getCanvaEmbedUrl(config.canvaUrl);
   const currentSlide = config.slides[config.activeSlideIndex] || config.slides[0];
   const shouldHideControls = isAudienceView && config.hideCanvaControlsOnAudience !== false;
+  const effectiveFitMode = config.slideImageFit || imageFitMode || 'contain';
 
   if (isChromaMode) {
     return (
@@ -31,7 +32,6 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
         style={{
           backgroundColor: chromaBgColor,
           borderRadius: 'inherit',
-          WebkitMaskImage: '-webkit-radial-gradient(white, black)',
         }}
       >
         {!isAudienceView && (
@@ -50,7 +50,6 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
       style={{
         borderRadius: 'inherit',
         overflow: 'hidden',
-        WebkitMaskImage: '-webkit-radial-gradient(white, black)',
       }}
     >
       <AnimatePresence mode="wait">
@@ -65,7 +64,6 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
             style={{
               borderRadius: 'inherit',
               overflow: 'hidden',
-              WebkitMaskImage: '-webkit-radial-gradient(white, black)',
             }}
           >
             {shouldHideControls ? (
@@ -73,7 +71,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
               <iframe
                 src={canvaEmbedSrc}
                 title="Canva Presentation Audience View"
-                className="w-full h-[calc(100%+48px)] -mb-[48px] border-0 aspect-video pointer-events-auto"
+                className="w-full h-[calc(100%+48px)] -mb-[48px] border-0 pointer-events-auto"
                 style={{
                   borderRadius: 'inherit',
                   border: 'none',
@@ -86,7 +84,7 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
               <iframe
                 src={canvaEmbedSrc}
                 title="Canva Presentation View"
-                className="w-full h-full border-0 aspect-video"
+                className="w-full h-full border-0 pointer-events-auto"
                 style={{
                   borderRadius: 'inherit',
                   border: 'none',
@@ -107,7 +105,6 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
             style={{
               borderRadius: 'inherit',
               overflow: 'hidden',
-              WebkitMaskImage: '-webkit-radial-gradient(white, black)',
             }}
           >
             <AnimatePresence mode="wait">
@@ -119,11 +116,12 @@ export const SlideCanvas: React.FC<SlideCanvasProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4, ease: 'easeInOut' }}
-                className={`w-full h-full aspect-video ${
-                  imageFitMode === 'cover' ? 'object-cover' : 'object-contain'
+                className={`w-full h-full ${
+                  effectiveFitMode === 'cover' ? 'object-cover' : 'object-contain'
                 }`}
                 style={{
                   borderRadius: 'inherit',
+                  border: 'none',
                 }}
               />
             </AnimatePresence>

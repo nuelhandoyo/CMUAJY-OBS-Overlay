@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { checkSecureContext, getCleanVideoDevices } from '../utils/cameraStreamService';
 
 export interface CameraDeviceInfo {
   deviceId: string;
@@ -11,25 +12,30 @@ export function useCameraDeviceList() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSecure, setIsSecure] = useState<boolean>(true);
 
   const enumerateCameras = useCallback(async () => {
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
-      setError('MediaDevices API tidak didukung di browser ini.');
+    const sec = checkSecureContext();
+    if (!sec.isSecure) {
+      setIsSecure(false);
+      setError(sec.message || 'Kamera tidak didukung dalam koneksi HTTP tidak aman.');
       return [];
     }
+    setIsSecure(true);
 
     try {
-      const allDevices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = allDevices
-        .filter((d) => d.kind === 'videoinput')
-        .map((d, index) => ({
-          deviceId: d.deviceId,
-          label: d.label || `Kamera ${index + 1} (${d.deviceId ? d.deviceId.slice(0, 8) + '...' : 'Default'})`,
-          groupId: d.groupId,
-        }));
+      const cleanDevices = await getCleanVideoDevices();
+      setDevices(cleanDevices);
 
-      setDevices(videoDevices);
-      return videoDevices;
+      // Cek apakah perangkat sudah memiliki label nama asli (tanda izin sudah diberikan)
+      const hasNamedDevices = cleanDevices.some(
+        (d) => d.label && !d.label.includes('Izinkan kamera untuk melihat nama asli')
+      );
+      if (hasNamedDevices) {
+        setHasPermission(true);
+      }
+
+      return cleanDevices;
     } catch (err: any) {
       console.warn('Gagal membaca daftar perangkat kamera:', err);
       setError(err?.message || 'Gagal membaca kamera');
@@ -38,8 +44,9 @@ export function useCameraDeviceList() {
   }, []);
 
   const requestPermission = useCallback(async () => {
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      setError('MediaDevices API tidak tersedia.');
+    const sec = checkSecureContext();
+    if (!sec.isSecure) {
+      setError(sec.message || 'MediaDevices API tidak tersedia dalam mode HTTP.');
       return false;
     }
 
@@ -47,16 +54,18 @@ export function useCameraDeviceList() {
     setError(null);
 
     try {
+      // Buka stream singkat untuk meminta izin browser
       const tempStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
+        video: true,
         audio: false,
       });
 
-      // Release immediate stream
-      tempStream.getTracks().forEach((track) => track.stop());
+      // Segera matikan stream pembuka izin
+      tempStream.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {}
+      });
 
       setHasPermission(true);
       await enumerateCameras();
@@ -65,7 +74,13 @@ export function useCameraDeviceList() {
     } catch (err: any) {
       console.warn('Izin kamera ditolak atau tidak tersedia:', err);
       setHasPermission(false);
-      setError(err?.message || 'Izin kamera ditolak oleh browser.');
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setError('Izin kamera ditolak oleh browser. Klik ikon gembok/kamera di address bar untuk mengizinkan.');
+      } else if (err?.name === 'NotReadableError' || err?.name === 'TrackStartError') {
+        setError('Kamera fisik sedang digunakan oleh aplikasi lain (OBS Studio / Zoom). Tutup aplikasi tersebut atau gunakan mode Chroma Green di OBS.');
+      } else {
+        setError(err?.message || 'Izin kamera gagal diperoleh.');
+      }
       setIsLoading(false);
       return false;
     }
@@ -73,6 +88,27 @@ export function useCameraDeviceList() {
 
   useEffect(() => {
     enumerateCameras();
+
+    // Periksa status permission via Permissions API jika didukung browser
+    if (typeof navigator !== 'undefined' && (navigator as any).permissions?.query) {
+      try {
+        (navigator as any).permissions
+          .query({ name: 'camera' })
+          .then((permissionStatus: any) => {
+            if (permissionStatus.state === 'granted') {
+              setHasPermission(true);
+              enumerateCameras();
+            } else if (permissionStatus.state === 'denied') {
+              setHasPermission(false);
+            }
+            permissionStatus.onchange = () => {
+              setHasPermission(permissionStatus.state === 'granted');
+              enumerateCameras();
+            };
+          })
+          .catch(() => {});
+      } catch {}
+    }
 
     const handleDeviceChange = () => {
       enumerateCameras();
@@ -91,6 +127,7 @@ export function useCameraDeviceList() {
     hasPermission,
     isLoading,
     error,
+    isSecure,
     requestPermission,
     refreshDevices: enumerateCameras,
   };

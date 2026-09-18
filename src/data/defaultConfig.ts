@@ -52,8 +52,8 @@ export const defaultConfig: OverlayConfig = {
     topic: 'Workshop Spiritualitas & Pendampingan Orang Muda Katolik',
   },
 
-  cameraMode: 'chroma_green',
-  cameraSourceType: 'chroma_green',
+  cameraMode: 'live_device',
+  cameraSourceType: 'live_device',
   chromaColor: '#00FF00',
   showCameraFrame: false,
   frameBorderColor: '#093A6E',
@@ -61,12 +61,12 @@ export const defaultConfig: OverlayConfig = {
   camera1DeviceId: '',
   camera1Label: 'Kamera 1 (Utama)',
   camera1Mirrored: false,
-  camera1Active: false,
+  camera1Active: true,
 
   camera2DeviceId: '',
   camera2Label: 'Kamera 2 (Kedua)',
   camera2Mirrored: false,
-  camera2Active: false,
+  camera2Active: true,
 
   primaryActiveCamera: 'camera1',
 

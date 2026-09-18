@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { OverlayConfig } from '../../types';
 import { useCameraDeviceList } from '../../hooks/useCameraDevice';
+import { acquireCameraStream, releaseCameraStream, checkSecureContext } from '../../utils/cameraStreamService';
 import {
   Video,
   Camera,
@@ -12,6 +13,11 @@ import {
   Sliders,
   Sparkles,
   Layers,
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  Info,
+  Tv,
 } from 'lucide-react';
 
 interface CameraManagerProps {
@@ -25,73 +31,72 @@ export const CameraManager: React.FC<CameraManagerProps> = ({ config, updateConf
     hasPermission,
     isLoading,
     error,
+    isSecure,
     requestPermission,
     refreshDevices,
   } = useCameraDeviceList();
 
   const preview1Ref = useRef<HTMLVideoElement>(null);
   const preview2Ref = useRef<HTMLVideoElement>(null);
+  const [streamError1, setStreamError1] = useState<string | null>(null);
+  const [streamError2, setStreamError2] = useState<string | null>(null);
 
-  // Preview live streams in admin panel for camera 1
+  // Preview live streams in admin panel for camera 1 using shared stream service
   useEffect(() => {
-    let stream1: MediaStream | null = null;
+    let isCancelled = false;
+    const targetDevId = config.camera1DeviceId;
+    setStreamError1(null);
+
     if (config.cameraMode === 'live_device' && config.camera1Active !== false) {
-      navigator.mediaDevices
-        ?.getUserMedia({
-          video: config.camera1DeviceId
-            ? { deviceId: { exact: config.camera1DeviceId } }
-            : true,
-          audio: false,
-        })
+      acquireCameraStream(targetDevId)
         .then((s) => {
-          stream1 = s;
+          if (isCancelled) return;
           if (preview1Ref.current) {
             preview1Ref.current.srcObject = s;
             preview1Ref.current.play().catch(() => {});
           }
         })
-        .catch((e) => {
+        .catch((e: any) => {
+          if (isCancelled) return;
           console.warn('Cam 1 admin preview err:', e);
+          setStreamError1(e?.message || 'Gagal memuat feed Kamera 1');
         });
     }
 
     return () => {
-      if (stream1) {
-        stream1.getTracks().forEach((t) => t.stop());
-      }
+      isCancelled = true;
+      releaseCameraStream(targetDevId);
       if (preview1Ref.current) {
         preview1Ref.current.srcObject = null;
       }
     };
   }, [config.cameraMode, config.camera1DeviceId, config.camera1Active]);
 
-  // Preview live streams in admin panel for camera 2
+  // Preview live streams in admin panel for camera 2 using shared stream service
   useEffect(() => {
-    let stream2: MediaStream | null = null;
+    let isCancelled = false;
+    const targetDevId = config.camera2DeviceId;
+    setStreamError2(null);
+
     if (config.cameraMode === 'live_device' && config.camera2Active !== false) {
-      navigator.mediaDevices
-        ?.getUserMedia({
-          video: config.camera2DeviceId
-            ? { deviceId: { exact: config.camera2DeviceId } }
-            : true,
-          audio: false,
-        })
+      acquireCameraStream(targetDevId)
         .then((s) => {
-          stream2 = s;
+          if (isCancelled) return;
           if (preview2Ref.current) {
             preview2Ref.current.srcObject = s;
             preview2Ref.current.play().catch(() => {});
           }
         })
-        .catch((e) => {
+        .catch((e: any) => {
+          if (isCancelled) return;
           console.warn('Cam 2 admin preview err:', e);
+          setStreamError2(e?.message || 'Gagal memuat feed Kamera 2');
         });
     }
 
     return () => {
-      if (stream2) {
-        stream2.getTracks().forEach((t) => t.stop());
-      }
+      isCancelled = true;
+      releaseCameraStream(targetDevId);
       if (preview2Ref.current) {
         preview2Ref.current.srcObject = null;
       }
@@ -116,10 +121,14 @@ export const CameraManager: React.FC<CameraManagerProps> = ({ config, updateConf
           <button
             onClick={() => requestPermission()}
             disabled={isLoading}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+            className={`px-3 py-1.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
+              hasPermission
+                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                : 'bg-amber-500 hover:bg-amber-600 text-slate-950 animate-pulse'
+            }`}
           >
             <Camera className="w-3.5 h-3.5" />
-            <span>{hasPermission ? '✓ Izin Diberikan' : 'Izinkan Kamera'}</span>
+            <span>{hasPermission ? '✓ Izin Kamera Aktif' : 'Izinkan Akses Kamera'}</span>
           </button>
 
           <button
@@ -130,6 +139,78 @@ export const CameraManager: React.FC<CameraManagerProps> = ({ config, updateConf
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
+        </div>
+      </div>
+
+      {/* DIAGNOSTIC BANNER (LOKAL vs PREVIEW & OBS) */}
+      <div className="flex flex-col gap-2">
+        {!isSecure ? (
+          <div className="p-3.5 bg-rose-50 border-2 border-rose-300 rounded-2xl flex items-start gap-3 text-rose-950">
+            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs flex flex-col gap-1">
+              <span className="font-extrabold text-rose-900">
+                Peringatan: Protokol HTTP Tidak Aman Terdeteksi
+              </span>
+              <p className="text-slate-700 leading-relaxed">
+                Browser memblokir fitur kamera WebRTC jika dibuka lewat IP LAN non-localhost (misal <code>http://192.168.x.x</code>).
+                Pastikan membuka sistem melalui <strong>http://localhost:3000</strong> pada komputer yang sama, atau pasang sertifikat SSL/HTTPS.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-bold">Status Browser:</span>
+                <span className="inline-flex items-center gap-1 font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[11px]">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Secure Context OK
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-bold">Kamera Terdeteksi:</span>
+                <span className="font-mono font-black text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[11px]">
+                  {devices.length} Perangkat
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 font-bold">Status Kamera 1 & 2:</span>
+                <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-md ${
+                  config.camera1Active !== false && config.camera2Active !== false
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {config.camera1Active !== false ? 'Cam 1 ON' : 'Cam 1 OFF'} | {config.camera2Active !== false ? 'Cam 2 ON' : 'Cam 2 OFF'}
+                </span>
+              </div>
+            </div>
+
+            {(config.camera1Active === false || config.camera2Active === false) && (
+              <button
+                onClick={() => updateConfig({ camera1Active: true, camera2Active: true })}
+                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs cursor-pointer"
+              >
+                Nyalakan Kedua Kamera
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* OBS Studio Tips Callout */}
+        <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-2xl flex items-start gap-2.5 text-xs text-blue-950">
+          <Info className="w-4 h-4 text-[#093A6E] shrink-0 mt-0.5" />
+          <div className="text-[11px] text-slate-700 leading-relaxed">
+            <strong className="text-[#093A6E]">Tips untuk Deployment Lokal & OBS Studio:</strong>
+            <ul className="list-disc pl-4 mt-1 space-y-0.5">
+              <li>
+                <strong>Kamera Fisik Terkunci di Windows:</strong> Jika webcam sudah Anda masukkan sebagai <em>"Video Capture Device"</em> di dalam software OBS Studio, Windows akan mengunci hardware tersebut sehingga browser tidak bisa membukanya secara bersamaan.
+              </li>
+              <li>
+                <strong>Solusi Terbaik untuk Siaran:</strong> Gunakan <strong>Mode Chroma Green (#00FF00)</strong> (di bawah) lalu beri filter Chroma Key di OBS, ATAU aktifkan <strong>OBS Virtual Camera</strong> di OBS dan pilih Virtual Camera tersebut sebagai input di sini.
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -312,6 +393,14 @@ export const CameraManager: React.FC<CameraManagerProps> = ({ config, updateConf
                 <span className="absolute bottom-2 left-2 bg-slate-900/80 text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
                   {config.camera1Label || 'KAMERA 1'}
                 </span>
+                {streamError1 && (
+                  <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-3 text-center z-10">
+                    <AlertCircle className="w-6 h-6 text-rose-400 mb-1" />
+                    <span className="text-[10px] text-rose-300 font-semibold leading-tight">
+                      {streamError1}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -416,6 +505,14 @@ export const CameraManager: React.FC<CameraManagerProps> = ({ config, updateConf
                 <span className="absolute bottom-2 left-2 bg-slate-900/80 text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
                   {config.camera2Label || 'KAMERA 2'}
                 </span>
+                {streamError2 && (
+                  <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-3 text-center z-10">
+                    <AlertCircle className="w-6 h-6 text-rose-400 mb-1" />
+                    <span className="text-[10px] text-rose-300 font-semibold leading-tight">
+                      {streamError2}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

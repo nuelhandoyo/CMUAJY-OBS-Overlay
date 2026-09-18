@@ -10,11 +10,13 @@ interface SessionData {
 const app = express();
 const PORT = 3000;
 
-// Enable CORS for all incoming connections (including OBS Studio Browser Source CEF)
+// Enable CORS & Permissions-Policy for all incoming connections (including OBS Studio Browser Source CEF)
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Permissions-Policy', 'camera=*, microphone=*');
+  res.setHeader('Feature-Policy', "camera '*'; microphone '*'");
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }

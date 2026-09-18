@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CameraMode, LowerThirdShape } from '../../types';
 import { getLayoutShapeClass, getFrameBorderStyle } from '../../utils/shapeUtils';
-import { Video, VideoOff, RefreshCw, AlertCircle } from 'lucide-react';
+import { Video, VideoOff, RefreshCw, AlertCircle, ShieldAlert } from 'lucide-react';
+import { acquireCameraStream, releaseCameraStream, checkSecureContext } from '../../utils/cameraStreamService';
 
 interface CameraBoxProps {
   cameraMode: CameraMode;
@@ -36,16 +37,17 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [permissionDenied, setPermissionDenied] = useState<boolean>(false);
+  const [insecureContext, setInsecureContext] = useState<boolean>(false);
 
   const shapeClass = getLayoutShapeClass(shape);
   const borderStyle = getFrameBorderStyle(showFrame, frameColor, borderWidth, shape);
 
   // Manage Live Camera Stream when cameraMode is 'live_device'
   useEffect(() => {
-    let currentStream: MediaStream | null = null;
     let isCancelled = false;
+    const targetDevId = deviceId;
 
-    if (cameraMode !== 'live_device' || !isActive) {
+    if (cameraMode !== 'live_device' || isActive === false) {
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
@@ -58,70 +60,40 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
       setIsLoading(true);
       setError(null);
       setPermissionDenied(false);
+      setInsecureContext(false);
 
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-        setError('Kamera WebRTC tidak didukung di browser ini.');
+      const sec = checkSecureContext();
+      if (!sec.isSecure) {
+        setInsecureContext(true);
+        setError(sec.message || 'Kamera diblokir oleh browser dalam mode HTTP.');
         setIsLoading(false);
         return;
       }
 
       try {
-        const constraints: MediaStreamConstraints = {
-          video: deviceId
-            ? {
-                deviceId: { exact: deviceId },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-              }
-            : {
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-              },
-          audio: false,
-        };
-
-        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const mediaStream = await acquireCameraStream(targetDevId);
 
         if (isCancelled) {
-          mediaStream.getTracks().forEach((track) => track.stop());
+          releaseCameraStream(targetDevId);
           return;
         }
 
-        currentStream = mediaStream;
         setStream(mediaStream);
 
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
           videoRef.current.play().catch((e) => {
-            console.warn('Autoplay video error:', e);
+            console.warn('Autoplay video warning:', e);
           });
         }
         setIsLoading(false);
       } catch (err: any) {
         if (isCancelled) return;
-        console.warn('Error starting camera device:', err);
+        console.warn('Gagal memuat stream kamera:', err);
         setIsLoading(false);
         if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
           setPermissionDenied(true);
-          setError('Izin kamera ditolak. Silakan izinkan akses kamera di browser Anda.');
-        } else if (err?.name === 'OverconstrainedError' || err?.name === 'NotFoundError') {
-          // If exact device not found, try fallback default camera
-          try {
-            const fallbackStream = await navigator.mediaDevices.getUserMedia({
-              video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-              audio: false,
-            });
-            if (!isCancelled) {
-              currentStream = fallbackStream;
-              setStream(fallbackStream);
-              if (videoRef.current) {
-                videoRef.current.srcObject = fallbackStream;
-                videoRef.current.play().catch(() => {});
-              }
-            }
-          } catch (fbErr: any) {
-            setError(fbErr?.message || 'Perangkat kamera tidak ditemukan.');
-          }
+          setError('Izin kamera belum diaktifkan di browser.');
         } else {
           setError(err?.message || 'Gagal menghubungkan ke feed kamera.');
         }
@@ -132,9 +104,7 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
 
     return () => {
       isCancelled = true;
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => track.stop());
-      }
+      releaseCameraStream(targetDevId);
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
@@ -145,13 +115,24 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
     try {
       const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      tempStream.getTracks().forEach((t) => t.stop());
+      tempStream.getTracks().forEach((t) => {
+        try {
+          t.stop();
+        } catch {}
+      });
       setPermissionDenied(false);
       setError(null);
-      // Re-trigger
-      window.location.reload();
+      // Reload stream
+      if (deviceId) {
+        const s = await acquireCameraStream(deviceId);
+        setStream(s);
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.play().catch(() => {});
+        }
+      }
     } catch (e) {
-      alert('Izin kamera tetap diblokir. Harap aktifkan ikon kamera di address bar browser Anda.');
+      alert('Izin kamera tetap diblokir. Harap aktifkan izin kamera di address bar browser Anda (ikon gembok / kamera).');
     }
   };
 
@@ -195,16 +176,27 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
                       Menghubungkan ke Feed Kamera...
                     </span>
                   </div>
+                ) : insecureContext ? (
+                  <div className="flex flex-col items-center gap-2.5 max-w-sm p-4 bg-rose-950/60 border border-rose-500/50 rounded-2xl text-white">
+                    <ShieldAlert className="w-8 h-8 text-rose-400" />
+                    <span className="text-xs font-black uppercase tracking-wider text-rose-200">
+                      Koneksi Tidak Aman (HTTP)
+                    </span>
+                    <p className="text-[11px] text-slate-200 leading-relaxed">
+                      Browser memblokir kamera karena dibuka melalui IP/HTTP. Silakan buka melalui <strong>http://localhost:3000</strong> di komputer ini.
+                    </p>
+                  </div>
                 ) : permissionDenied ? (
-                  <div className="flex flex-col items-center gap-3 max-w-sm">
+                  <div className="flex flex-col items-center gap-2.5 max-w-sm">
                     <AlertCircle className="w-9 h-9 text-rose-500" />
                     <span className="text-sm font-extrabold text-white">
                       Izin Kamera Diperlukan
                     </span>
                     <p className="text-[11px] text-slate-300">
-                      Sistem membutuhkan izin untuk menampilkan kamera web / capture card Anda.
+                      Sistem membutuhkan izin untuk menampilkan video dari webcam / capture card Anda.
                     </p>
                     <button
+                      type="button"
                       onClick={handleRequestPermission}
                       className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-lg text-xs transition-all shadow-md cursor-pointer"
                     >
@@ -219,12 +211,13 @@ export const CameraBox: React.FC<CameraBoxProps> = ({
                     <span className="text-xs font-black text-amber-300 uppercase tracking-wider">
                       {label || 'Feed Kamera'}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
-                      {deviceId ? 'Device Terhubung' : 'Pilih perangkat di Tab Kamera'}
-                    </span>
-                    {error && (
-                      <span className="text-[10px] text-rose-400 font-medium max-w-[200px]">
+                    {error ? (
+                      <span className="text-[11px] text-rose-300 font-medium px-2 py-1 bg-rose-950/60 rounded border border-rose-800/80 leading-snug">
                         {error}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                        {deviceId ? 'Device Terhubung' : 'Pilih perangkat di Tab Kamera'}
                       </span>
                     )}
                   </div>

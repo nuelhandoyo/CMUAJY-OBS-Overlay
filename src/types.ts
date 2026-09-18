@@ -68,6 +68,10 @@ export interface OverlayConfig {
   // Active camera selection for single camera layouts
   primaryActiveCamera?: 'camera1' | 'camera2';
 
+  // Slide + 1 Customization (Option to replace Slide section with Camera feed)
+  slide1LeftContentType?: 'slide' | 'camera'; // Default: 'slide'
+  slide1LeftCameraSource?: 'camera1' | 'camera2'; // Default: 'camera2'
+
   // Slide Deck & Canva
   slideSourceType: 'canva_embed' | 'image_deck' | 'chroma_green';
   slideChromaColor?: string;

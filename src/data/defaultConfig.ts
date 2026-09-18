@@ -70,6 +70,9 @@ export const defaultConfig: OverlayConfig = {
 
   primaryActiveCamera: 'camera1',
 
+  slide1LeftContentType: 'slide',
+  slide1LeftCameraSource: 'camera2',
+
   slideSourceType: 'canva_embed',
   slideImageFit: 'contain',
   canvaUrl: 'https://www.canva.com/design/DAGfsK7x68U/view?embed',

@@ -463,6 +463,68 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <span className="text-[10px] leading-tight">Tunggu</span>
                   </button>
                 </div>
+
+                {/* Sub-bar for Slide + 1 (Option to replace slide with camera) */}
+                {config.layoutMode === 'presenter_slide' && (
+                  <div className="p-2.5 bg-blue-50/90 rounded-xl border border-blue-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-[#093A6E] flex items-center gap-1.5">
+                        <span>⚡ Bagian Slide (Kiri 70%):</span>
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-600">
+                        {config.slide1LeftContentType === 'camera' ? (
+                          <span className="text-amber-800 font-extrabold bg-amber-100/90 px-1.5 py-0.5 rounded border border-amber-300">
+                            📹 Diganti Kamera ({config.slide1LeftCameraSource === 'camera1' ? 'Kamera 1' : 'Kamera 2'})
+                          </span>
+                        ) : (
+                          <span className="text-[#093A6E] font-bold bg-blue-100/80 px-1.5 py-0.5 rounded border border-blue-200">
+                            📊 Menampilkan Slide
+                          </span>
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slide1LeftContentType: 'slide' })}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          (config.slide1LeftContentType || 'slide') === 'slide'
+                            ? 'bg-[#093A6E] text-white shadow-xs'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        📊 Slide
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slide1LeftContentType: 'camera' })}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          config.slide1LeftContentType === 'camera'
+                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs ring-1 ring-amber-400'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        📹 Ganti Kamera
+                      </button>
+
+                      {config.slide1LeftContentType === 'camera' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = config.slide1LeftCameraSource === 'camera1' ? 'camera2' : 'camera1';
+                            updateConfig({ slide1LeftCameraSource: next });
+                          }}
+                          className="px-2 py-1 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold cursor-pointer"
+                          title="Tukar Posisi Kamera Kiri dan Kanan"
+                        >
+                          🔄 Tukar Kiri ⇄ Kanan ({config.slide1LeftCameraSource === 'camera1' ? 'Cam 1 ⇄ Cam 2' : 'Cam 2 ⇄ Cam 1'})
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Row 2: Quick Switch Kamera Utama & Mode */}
@@ -1224,10 +1286,102 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <p className="text-xs text-slate-600">
                     Layar slide presentasi utama di kiri (70%) dengan kotak Kamera 1 pembicara tinggi penuh di kanan (30%).
                   </p>
+
+                  {/* Opsi Konten Bagian Slide (Slide vs Kamera) */}
+                  <div
+                    className="p-3 bg-white/95 rounded-xl border border-slate-200/90 flex flex-col gap-2 shadow-xs"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-extrabold text-slate-800 flex items-center gap-1">
+                        <span>🎛️ Sumber Bagian Slide (Kiri 70%):</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        {config.slide1LeftContentType === 'camera' ? 'Kamera Aktif' : 'Slide Aktif'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slide1LeftContentType: 'slide', layoutMode: 'presenter_slide' })}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          (config.slide1LeftContentType || 'slide') === 'slide'
+                            ? 'bg-[#093A6E] text-white shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <span>📊 Slide Presentasi</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateConfig({ slide1LeftContentType: 'camera', layoutMode: 'presenter_slide' })}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          config.slide1LeftContentType === 'camera'
+                            ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs ring-1 ring-amber-400'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <span>📹 Ganti dg Kamera</span>
+                      </button>
+                    </div>
+
+                    {/* Jika Kamera dipilih untuk bagian slide */}
+                    {config.slide1LeftContentType === 'camera' && (
+                      <div className="mt-1 p-2 bg-amber-50/80 border border-amber-200 rounded-lg flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-amber-950">Pilih Kamera di Bagian Slide:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = config.slide1LeftCameraSource === 'camera1' ? 'camera2' : 'camera1';
+                              updateConfig({ slide1LeftCameraSource: next });
+                            }}
+                            className="text-[10px] bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1"
+                            title="Tukar Posisi Kamera Kiri dan Kanan"
+                          >
+                            <span>🔄 Tukar Kiri ⇄ Kanan</span>
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => updateConfig({ slide1LeftCameraSource: 'camera2' })}
+                            className={`py-1 px-1.5 rounded text-[11px] font-bold text-center transition-all cursor-pointer ${
+                              (config.slide1LeftCameraSource || 'camera2') === 'camera2'
+                                ? 'bg-amber-600 text-white font-extrabold shadow-xs'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            Kamera 2 (Tamu)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateConfig({ slide1LeftCameraSource: 'camera1' })}
+                            className={`py-1 px-1.5 rounded text-[11px] font-bold text-center transition-all cursor-pointer ${
+                              config.slide1LeftCameraSource === 'camera1'
+                                ? 'bg-amber-600 text-white font-extrabold shadow-xs'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            Kamera 1 (Utama)
+                          </button>
+                        </div>
+                        <div className="text-[10px] text-amber-900 flex items-center justify-between pt-1 border-t border-amber-200/60">
+                          <span>Kiri (70%): <strong>{config.slide1LeftCameraSource === 'camera1' ? (config.camera1Label || 'Kamera 1') : (config.camera2Label || 'Kamera 2')}</strong></span>
+                          <span>Kanan (30%): <strong>{config.slide1LeftCameraSource === 'camera1' ? (config.camera2Label || 'Kamera 2') : (config.camera1Label || 'Kamera 1')}</strong></span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
                     <span className="text-slate-500 font-medium">Input Kamera:</span>
                     <span className="font-mono font-bold text-[#093A6E] bg-white px-2 py-0.5 rounded border border-slate-200">
-                      📹 {config.camera1Label || 'Kamera 1 (Utama)'}
+                      📹 {config.slide1LeftContentType === 'camera'
+                        ? (config.slide1LeftCameraSource === 'camera1' ? 'Kamera 1 (Kiri) + Kamera 2 (Kanan)' : 'Kamera 2 (Kiri) + Kamera 1 (Kanan)')
+                        : (config.camera1Label || 'Kamera 1 (Utama)')}
                     </span>
                   </div>
                 </div>
@@ -2547,6 +2701,47 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     }`}
                   >
                     <span>📊 Aktifkan Slide Full (No Border)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* OPSI GANTI SLIDE DI 'SLIDE + 1' DENGAN KAMERA */}
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50/60 rounded-2xl border-2 border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-2">
+                    <span>🔄</span>
+                    Ganti Bagian Slide di Layout "Slide + 1" dengan Kamera
+                  </span>
+                  <p className="text-xs text-amber-900/80">
+                    Status saat ini:{' '}
+                    {config.slide1LeftContentType === 'camera' ? (
+                      <span className="text-amber-900 font-extrabold">
+                        Aktif Kamera ({config.slide1LeftCameraSource === 'camera1' ? 'Kamera 1 di Kiri' : 'Kamera 2 di Kiri'})
+                      </span>
+                    ) : (
+                      <span className="text-slate-600 font-medium">Aktif Slide Presentasi</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() =>
+                      updateConfig({
+                        slide1LeftContentType: config.slide1LeftContentType === 'camera' ? 'slide' : 'camera',
+                        layoutMode: 'presenter_slide',
+                      })
+                    }
+                    className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-xs flex items-center gap-1.5 ${
+                      config.slide1LeftContentType === 'camera'
+                        ? 'bg-amber-600 text-white ring-2 ring-amber-300'
+                        : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-300'
+                    }`}
+                  >
+                    <span>
+                      {config.slide1LeftContentType === 'camera'
+                        ? 'Kembalikan ke Slide Presentasi'
+                        : '📹 Ganti dg Kamera di "Slide + 1"'}
+                    </span>
                   </button>
                 </div>
               </div>
